@@ -100,7 +100,7 @@ class CascaColors extends ThemeExtension<CascaColors> {
     onDanger: Color(0xFF2A1313),
     info: Color(0xFF6B9FDC),
     infoSoft: Color(0xFF2A3547),
-    onInfo: Color(0xFF111C2B),
+    onInfo: Color(0xFFFFFFFF),
     background: Color(0xFF202124),
     backgroundHover: Color(0xFF2D2E32),
     surface: Color(0xFF292A2E),

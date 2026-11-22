@@ -41,6 +41,8 @@ abstract final class CascaTheme {
 
     return ThemeData(
       useMaterial3: true,
+      visualDensity: VisualDensity.standard,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       brightness: brightness,
       colorScheme: scheme,
       scaffoldBackgroundColor: c.background,
@@ -48,10 +50,7 @@ abstract final class CascaTheme {
       dividerColor: c.border,
       fontFamily: CascaTypography.fontFamily,
       fontFamilyFallback: CascaTypography.fontFamilyFallback,
-      textTheme: CascaTypography.textTheme(
-        color: c.text,
-        muted: c.textMuted,
-      ),
+      textTheme: CascaTypography.textTheme(color: c.text, muted: c.textMuted),
       appBarTheme: AppBarTheme(
         backgroundColor: c.surface,
         foregroundColor: c.text,
@@ -75,10 +74,20 @@ abstract final class CascaTheme {
         filled: true,
         fillColor: c.surface,
         isDense: true,
+        constraints: const BoxConstraints(minHeight: CascaSpacing.space8),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: CascaSpacing.space3,
-          vertical: CascaSpacing.space3,
+          vertical: 10,
         ),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: CascaSpacing.space8,
+          minHeight: CascaSpacing.space8,
+        ),
+        suffixIconConstraints: const BoxConstraints(
+          minWidth: CascaSpacing.space8,
+          minHeight: CascaSpacing.space8,
+        ),
+        errorStyle: TextStyle(color: c.danger, fontSize: CascaFontSize.xs),
         hintStyle: TextStyle(
           color: c.textSecondary.withValues(alpha: 0.8),
           fontSize: CascaFontSize.sm,
@@ -143,4 +152,3 @@ abstract final class CascaTheme {
 extension CascaThemeContext on BuildContext {
   CascaColors get casca => Theme.of(this).extension<CascaColors>()!;
 }
-
