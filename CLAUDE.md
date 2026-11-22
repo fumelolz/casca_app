@@ -8,6 +8,8 @@ Do not introduce comments in code (rule in `../CLAUDE.md`): this includes `///` 
 
 Flutter, Dart. Verify versions in `pubspec.yaml`; do not add, remove or upgrade dependencies without approval (see root). The app imports `package:material_ui/material_ui.dart` (as the project template does), not `material.dart`.
 
+Installed: `flutter_svg` (SVG icons in `assets/icons/`, copied from the Font Awesome Free set used by casca-web; keep the license comment inside each SVG, CC BY 4.0). Do not use icon fonts.
+
 Planned (not installed yet, ask before adding): Riverpod (state), go_router (navigation), Dio + cookie manager (HTTP), Drift (offline), Freezed + json_serializable (models).
 
 ## Architecture
@@ -54,7 +56,7 @@ Source of truth: `lib/app/theme/`, ported from `casca-web/src/styles/tokens`.
 - Colors: `CascaColors` (`ThemeExtension`, light and dark). Read them with `context.casca`; never hardcode `Color(0x...)` or `Colors.*` in widgets.
 - Spacing, radius, shadows, typography: `CascaSpacing`, `CascaRadius`, `CascaShadows`, `CascaFontSize`/`CascaFontWeight`. No magic numbers for padding, radius or font size.
 - Keep token values in sync with web: change a token in both places or document the divergence.
-- Font Poppins (fallback Inter) is declared but the font files are not bundled yet; adding them (assets or `google_fonts`) needs approval.
+- Font Poppins (400, 500, 600) is bundled in `assets/fonts/poppins/` (SIL OFL, keep `OFL.txt`); the fallback is Inter. Add a weight only if a token needs it.
 
 ## Design system
 
