@@ -67,10 +67,22 @@ Source of truth: `lib/app/theme/`, ported from `casca-web/src/styles/tokens`.
 - Reuse `shared/ui` (`casca_*`) before creating new widgets. Do not use raw `ElevatedButton`, `TextField` or similar when a `casca_*` equivalent exists.
 - If no component covers the need, or it must be extended, ask the user first.
 - User-facing text in Spanish (see root).
+- Available in `shared/ui`: `CascaButton`, `CascaInput` (text, password, `inputFormatters`, `maxLength`, `autofillHints`), `CascaSelect` (dropdown below the field; options take an `icon` SVG or an `image`), `CascaLink`, `CascaIcon`/`CascaIcons`, `CascaOverlayLoader` (full-screen loader, place it last inside a `Stack`), `CascaStepProgress`. Input masks: `shared/formatters/MaskInputFormatter` (`phone`).
+- Widgets of the same type in the same position reuse their `State`: when a screen swaps steps or views that contain stateful inputs, give each branch a distinct `key` (bug found in `RegisterPage`).
 
 ## State management
 
-Riverpod once approved: providers with lifecycle (`autoDispose`) per feature; no duplicated state between provider and widget; no global mutable singletons. No other state library without approval.
+Riverpod: providers with lifecycle (`autoDispose`) per feature; no duplicated state between provider and widget; no global mutable singletons. No other state library without approval.
+
+- One screen action = one `Notifier<AsyncValue<T>>` with `autoDispose` (`LoginController`, `RegisterController`, `ForgotPasswordController`, `SetPasswordController`). The page reads it with `ref.watch` in `build` and calls it with `ref.read(...notifier)` in handlers. After an `await` check `ref.mounted` before assigning `state` (the page may have been disposed by a redirect).
+- Pages keep only UI state (current step, controllers); rules go in `features/<f>/domain`, texts of errors in the page.
+
+## Routing and session
+
+- `go_router` in `app/router/` (`app_router.dart`, `auth_redirect.dart`); path constants and `guestRoutes` in `core/routing/app_routes.dart` (features import from there, never from `app/`).
+- Session lives in `core/auth/auth_controller.dart` (`AuthStatus` initializing/authenticated/unauthenticated, `signIn`, `register`, `signOut`, `restoreSession` via `/auth/me`, listens to `sessionExpiredProvider`). The router `redirect` follows it: never navigate by hand after login/logout.
+- `SessionState.activeStore` and `stores` can be null/empty (user without business): do not assume a store. Destination by `hasTenant`/`hasCompletedOnboarding` is not implemented yet.
+- Auth screens share `features/auth/presentation/widgets/auth_card_layout.dart`. Recovery flow: `forgot-password` -> `verify-reset-code` -> `change-password`.
 
 ## API communication
 
@@ -86,6 +98,10 @@ Riverpod once approved: providers with lifecycle (`autoDispose`) per feature; no
 ## Testing
 
 `flutter_test` (+ `mocktail` once approved). `test/` mirrors `lib/`. Prioritize `core/sync`, `domain/rules`, repositories and `shared/ui`. Inspect nearby tests first.
+
+- Repositories: fake Dio adapter in `test/core/network/fake_http_adapter.dart`.
+- Controllers and flows: override `authRepositoryProvider` with `test/support/fake_auth_repository.dart`; screen flows run through `routerProvider` in `test/app/router/app_router_test.dart`.
+- Widget tests must wrap in `MaterialApp(theme: CascaTheme.light)` (`context.casca` needs the theme extension) and use a tall `tester.view.physicalSize` for long forms.
 
 ## Validation
 

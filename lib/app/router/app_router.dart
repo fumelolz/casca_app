@@ -3,6 +3,7 @@ import 'package:casca_app/core/auth/auth_controller.dart';
 import 'package:casca_app/core/routing/app_routes.dart';
 import 'package:casca_app/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/login_page.dart';
+import 'package:casca_app/features/auth/presentation/pages/register_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/set_password_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/splash_page.dart';
 import 'package:casca_app/features/home/presentation/pages/home_page.dart';
@@ -44,6 +45,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           email: state.uri.queryParameters['email'] ?? '',
           recovery: state.uri.queryParameters['recovery'] == '1',
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.register,
+        builder: (context, state) => const RegisterPage(),
       ),
       GoRoute(
         path: AppRoutes.home,

@@ -44,6 +44,13 @@ void main() {
       );
     });
 
+    test('permite el registro', () {
+      expect(
+        authRedirect(AuthStatus.unauthenticated, AppRoutes.register),
+        isNull,
+      );
+    });
+
     test('se queda en login', () {
       expect(authRedirect(AuthStatus.unauthenticated, AppRoutes.login), isNull);
     });

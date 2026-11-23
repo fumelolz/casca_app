@@ -1,4 +1,5 @@
 import 'package:casca_app/core/auth/auth_repository.dart';
+import 'package:casca_app/core/auth/register_request.dart';
 import 'package:casca_app/core/auth/session_state.dart';
 import 'package:casca_app/core/network/network_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,6 +43,11 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> signIn({required String email, required String password}) async {
     final session = await _repository.login(email: email, password: password);
+    state = AuthState.authenticated(session);
+  }
+
+  Future<void> register(RegisterRequest request) async {
+    final session = await _repository.registerAdmin(request);
     state = AuthState.authenticated(session);
   }
 

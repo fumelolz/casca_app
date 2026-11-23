@@ -6,6 +6,7 @@ import 'package:casca_app/core/routing/app_routes.dart';
 import 'package:casca_app/features/auth/domain/password_rules.dart';
 import 'package:casca_app/features/auth/presentation/providers/set_password_controller.dart';
 import 'package:casca_app/features/auth/presentation/widgets/auth_card_layout.dart';
+import 'package:casca_app/features/auth/presentation/widgets/password_requirements_hint.dart';
 import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_icon.dart';
 import 'package:casca_app/shared/ui/casca_input.dart';
@@ -93,7 +94,6 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
               passwordController: _passwordController,
               validateEmail: _validateEmail,
               validateRequired: _validateRequired,
-              checks: checkPassword(_passwordController.text),
               showMissingAsError: _submitAttempted,
               loading: state.isLoading,
               error: state.error,
@@ -113,7 +113,6 @@ class _FormView extends StatelessWidget {
     required this.passwordController,
     required this.validateEmail,
     required this.validateRequired,
-    required this.checks,
     required this.showMissingAsError,
     required this.loading,
     required this.error,
@@ -130,7 +129,6 @@ class _FormView extends StatelessWidget {
   final TextEditingController passwordController;
   final FormFieldValidator<String> validateEmail;
   final FormFieldValidator<String> validateRequired;
-  final List<PasswordCheck> checks;
   final bool showMissingAsError;
   final bool loading;
   final Object? error;
@@ -229,9 +227,8 @@ class _FormView extends StatelessWidget {
                 onFieldSubmitted: (_) => onSubmit(),
               ),
               const SizedBox(height: CascaSpacing.space2),
-              _PasswordHint(
-                checks: checks,
-                empty: passwordController.text.isEmpty,
+              PasswordRequirementsHint(
+                password: passwordController.text,
                 showMissingAsError: showMissingAsError,
               ),
               if (error != null) ...[
@@ -256,57 +253,6 @@ class _FormView extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _PasswordHint extends StatelessWidget {
-  const _PasswordHint({
-    required this.checks,
-    required this.empty,
-    required this.showMissingAsError,
-  });
-
-  final List<PasswordCheck> checks;
-  final bool empty;
-  final bool showMissingAsError;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.casca;
-    final textTheme = Theme.of(context).textTheme;
-    final missing = [
-      for (final check in checks)
-        if (!check.met) check.shortLabel,
-    ];
-
-    if (missing.isEmpty) {
-      return Row(
-        children: [
-          CascaIcon(
-            CascaIcons.circleCheck,
-            size: CascaFontSize.sm,
-            color: colors.success,
-          ),
-          const SizedBox(width: CascaSpacing.space2),
-          Text(
-            'Contraseña segura',
-            style: textTheme.bodySmall?.copyWith(color: colors.success),
-          ),
-        ],
-      );
-    }
-
-    final text = empty
-        ? 'Debe tener 8 caracteres, mayúscula, minúscula, número y carácter '
-              'especial.'
-        : 'Falta: ${missing.join(', ')}.';
-
-    return Text(
-      text,
-      style: textTheme.bodySmall?.copyWith(
-        color: showMissingAsError ? colors.danger : colors.textMuted,
-      ),
     );
   }
 }

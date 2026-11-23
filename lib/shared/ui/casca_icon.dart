@@ -5,14 +5,19 @@ import 'package:material_ui/material_ui.dart';
 abstract final class CascaIcons {
   static const String arrowLeft = 'assets/icons/arrow-left.svg';
   static const String bagShopping = 'assets/icons/bag-shopping.svg';
+  static const String basketShopping = 'assets/icons/basket-shopping.svg';
   static const String check = 'assets/icons/check.svg';
+  static const String chevronDown = 'assets/icons/chevron-down.svg';
   static const String circle = 'assets/icons/circle.svg';
   static const String circleCheck = 'assets/icons/circle-check.svg';
   static const String key = 'assets/icons/key.svg';
   static const String envelope = 'assets/icons/envelope.svg';
   static const String eye = 'assets/icons/eye.svg';
   static const String eyeSlash = 'assets/icons/eye-slash.svg';
+  static const String gem = 'assets/icons/gem.svg';
   static const String lock = 'assets/icons/lock.svg';
+  static const String screwdriverWrench = 'assets/icons/screwdriver-wrench.svg';
+  static const String store = 'assets/icons/store.svg';
   static const String xmark = 'assets/icons/xmark.svg';
 }
 

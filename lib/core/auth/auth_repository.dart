@@ -1,3 +1,4 @@
+import 'package:casca_app/core/auth/register_request.dart';
 import 'package:casca_app/core/auth/session_state.dart';
 import 'package:casca_app/core/network/api_client.dart';
 import 'package:casca_app/core/network/network_providers.dart';
@@ -17,6 +18,14 @@ class AuthRepository {
     return _api.post<SessionState>(
       AuthEndpoints.login,
       body: {'email': email, 'password': password},
+      decode: _decodeSession,
+    );
+  }
+
+  Future<SessionState> registerAdmin(RegisterRequest request) {
+    return _api.post<SessionState>(
+      AuthEndpoints.registerAdmin,
+      body: request.toJson(),
       decode: _decodeSession,
     );
   }

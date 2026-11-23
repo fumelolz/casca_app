@@ -160,7 +160,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               textBefore: '¿Aún no tienes cuenta? ',
               label: 'Regístrate',
               fontSize: CascaFontSize.md,
-              onTap: () {},
+              onTap: () => context.go(AppRoutes.register),
             ),
           ),
         ],
