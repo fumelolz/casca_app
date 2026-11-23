@@ -6,20 +6,21 @@ import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_icon.dart';
 import 'package:casca_app/shared/ui/casca_input.dart';
 import 'package:casca_app/shared/ui/casca_link.dart';
+import 'package:casca_app/core/errors/api_exception.dart';
+import 'package:casca_app/features/auth/presentation/providers/login_controller.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _loading = false;
-  String? _error;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -42,39 +43,33 @@ class _LoginPageState extends State<LoginPage> {
     return null;
   }
 
-  Future<void> _fakeLogin(String email, String password) async {
-    await Future.delayed(const Duration(seconds: 2));
-    if (password != '123456') throw Exception('Credenciales inválidas');
+  String _errorMessage(Object error) {
+    if (error is! ApiException) return 'Ocurrió un error inesperado.';
+    if (error.isUnauthorized && error.serverMessage == null) {
+      return 'Correo o contraseña incorrectos.';
+    }
+    return error.message;
   }
 
   Future<void> _submit() async {
-    if (_loading) return;
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
-    String? error;
-    try {
-      await _fakeLogin(_emailController.text.trim(), _passwordController.text);
-    } catch (_) {
-      error = 'Correo o contraseña incorrectos.';
-    }
-
-    if (!mounted) return;
-    setState(() {
-      _loading = false;
-      _error = error;
-    });
+    await ref
+        .read(loginControllerProvider.notifier)
+        .submit(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.casca;
     final textTheme = Theme.of(context).textTheme;
-    final error = _error;
+    final loginState = ref.watch(loginControllerProvider);
+    final loading = loginState.isLoading;
+    final loginError = loginState.error;
+    final error = loginError == null ? null : _errorMessage(loginError);
     final labelStyle = textTheme.labelLarge?.copyWith(
       fontWeight: CascaFontWeight.semibold,
     );
@@ -179,9 +174,9 @@ class _LoginPageState extends State<LoginPage> {
                               const SizedBox(height: CascaSpacing.space5),
                               CascaButton(
                                 label: 'Iniciar sesión',
-                                loading: _loading,
+                                loading: loading,
                                 fullWidth: true,
-                                variant: CascaButtonVariant.danger,
+                                variant: CascaButtonVariant.primary,
                                 onPressed: _submit,
                               ),
                             ],

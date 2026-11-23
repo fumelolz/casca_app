@@ -10,7 +10,11 @@ Flutter, Dart. Verify versions in `pubspec.yaml`; do not add, remove or upgrade 
 
 Installed: `flutter_svg` (SVG icons in `assets/icons/`, drawn only through `CascaIcon`/`CascaIcons`, copied from the Font Awesome Free set used by casca-web; keep the license comment inside each SVG, CC BY 4.0). Do not use icon fonts.
 
-Planned (not installed yet, ask before adding): Riverpod (state), go_router (navigation), Dio + cookie manager (HTTP), Drift (offline), Freezed + json_serializable (models).
+Installed: `flutter_riverpod` (state), `go_router` (navigation), `dio` + `dio_cookie_manager` + `cookie_jar` (HTTP with cookie auth), `flutter_secure_storage` (encrypted cookie storage).
+
+Planned (not installed yet, ask before adding): Drift (offline), Freezed + json_serializable (models; Dart models are hand-written for now).
+
+Backend URL: `--dart-define=API_URL=https://...` (default `https://localhost:8080`; a physical phone cannot reach the PC's localhost, use a reachable HTTPS URL). Windows builds with plugins need Developer Mode enabled.
 
 ## Architecture
 
