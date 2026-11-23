@@ -8,7 +8,7 @@ Do not introduce comments in code (rule in `../CLAUDE.md`): this includes `///` 
 
 Flutter, Dart. Verify versions in `pubspec.yaml`; do not add, remove or upgrade dependencies without approval (see root). The app imports `package:material_ui/material_ui.dart` (as the project template does), not `material.dart`.
 
-Installed: `flutter_svg` (SVG icons in `assets/icons/`, copied from the Font Awesome Free set used by casca-web; keep the license comment inside each SVG, CC BY 4.0). Do not use icon fonts.
+Installed: `flutter_svg` (SVG icons in `assets/icons/`, drawn only through `CascaIcon`/`CascaIcons`, copied from the Font Awesome Free set used by casca-web; keep the license comment inside each SVG, CC BY 4.0). Do not use icon fonts.
 
 Planned (not installed yet, ask before adding): Riverpod (state), go_router (navigation), Dio + cookie manager (HTTP), Drift (offline), Freezed + json_serializable (models).
 

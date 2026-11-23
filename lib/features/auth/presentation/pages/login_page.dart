@@ -2,7 +2,10 @@ import 'package:casca_app/app/theme/casca_radius.dart';
 import 'package:casca_app/app/theme/casca_spacing.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/app/theme/casca_typography.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:casca_app/shared/ui/casca_button.dart';
+import 'package:casca_app/shared/ui/casca_icon.dart';
+import 'package:casca_app/shared/ui/casca_input.dart';
+import 'package:casca_app/shared/ui/casca_link.dart';
 import 'package:material_ui/material_ui.dart';
 
 class LoginPage extends StatefulWidget {
@@ -15,7 +18,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _passwordVisible = false;
   bool _loading = false;
   String? _error;
   final _formKey = GlobalKey<FormState>();
@@ -25,12 +27,6 @@ class _LoginPageState extends State<LoginPage> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  void _togglePasswordVisibility() {
-    setState(() {
-      _passwordVisible = !_passwordVisible;
-    });
   }
 
   String? _validateEmail(String? value) {
@@ -143,56 +139,32 @@ class _LoginPageState extends State<LoginPage> {
                             children: [
                               Text('Correo electrónico', style: labelStyle),
                               const SizedBox(height: CascaSpacing.space2),
-                              TextFormField(
+                              CascaInput(
                                 controller: _emailController,
-                                style: textTheme.bodyMedium,
+                                hintText: 'Ingresa tu correo',
+                                iconStart: CascaIcons.envelope,
                                 keyboardType: TextInputType.emailAddress,
                                 validator: _validateEmail,
-                                autovalidateMode:
-                                    AutovalidateMode.onUserInteraction,
-                                decoration: const InputDecoration(
-                                  hintText: 'Ingresa tu correo',
-                                  prefixIcon: Icon(
-                                    Icons.mail_outline,
-                                    size: 16,
-                                  ),
-                                ),
+                                showErrorMessage: false,
                               ),
                               const SizedBox(height: CascaSpacing.space5),
                               Text('Contraseña', style: labelStyle),
                               const SizedBox(height: CascaSpacing.space2),
-                              TextFormField(
+                              CascaInput(
                                 controller: _passwordController,
-                                style: textTheme.bodyMedium,
+                                hintText: 'Ingresa tu contraseña',
+                                iconStart: CascaIcons.lock,
+                                password: true,
+                                showErrorMessage: false,
                                 validator: _validatePassword,
-                                autovalidateMode:
-                                    AutovalidateMode.onUserInteraction,
-                                obscureText: !_passwordVisible,
-                                decoration: InputDecoration(
-                                  hintText: 'Ingresa tu contraseña',
-                                  prefixIcon: const Icon(
-                                    Icons.lock_outline,
-                                    size: 16,
-                                  ),
-                                  suffixIcon: IconButton(
-                                    onPressed: _togglePasswordVisibility,
-                                    iconSize: 18,
-                                    icon: Icon(
-                                      _passwordVisible
-                                          ? Icons.visibility_off_outlined
-                                          : Icons.visibility_outlined,
-                                    ),
-                                  ),
-                                ),
                               ),
                               const SizedBox(height: CascaSpacing.space3),
                               Align(
                                 alignment: Alignment.centerRight,
-                                child: Text(
-                                  '¿Olvidaste tu contraseña?',
-                                  style: labelStyle?.copyWith(
-                                    color: colors.info,
-                                  ),
+                                child: CascaLink(
+                                  label: '¿Olvidaste tu contraseña?',
+                                  onTap: () {},
+                                  fontSize: CascaFontSize.sm,
                                 ),
                               ),
                               if (error != null) ...[
@@ -205,27 +177,12 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ],
                               const SizedBox(height: CascaSpacing.space5),
-                              FilledButton(
+                              CascaButton(
+                                label: 'Iniciar sesión',
+                                loading: _loading,
+                                fullWidth: true,
+                                variant: CascaButtonVariant.danger,
                                 onPressed: _submit,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (_loading) ...[
-                                      SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: colors.onPrimary,
-                                        ),
-                                      ),
-                                      const SizedBox(
-                                        width: CascaSpacing.space2,
-                                      ),
-                                    ],
-                                    const Text('Iniciar sesión'),
-                                  ],
-                                ),
                               ),
                             ],
                           ),
@@ -233,22 +190,12 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: CascaSpacing.space6),
                         const Divider(),
                         const SizedBox(height: CascaSpacing.space4),
-                        Text.rich(
-                          textAlign: TextAlign.center,
-                          TextSpan(
-                            style: textTheme.bodyLarge?.copyWith(
-                              color: colors.textSecondary,
-                            ),
-                            children: [
-                              const TextSpan(text: '¿Aún no tienes cuenta? '),
-                              TextSpan(
-                                text: 'Regístrate',
-                                style: TextStyle(
-                                  color: colors.info,
-                                  fontWeight: CascaFontWeight.semibold,
-                                ),
-                              ),
-                            ],
+                        Center(
+                          child: CascaLink(
+                            textBefore: '¿Aún no tienes cuenta? ',
+                            label: 'Regístrate',
+                            fontSize: CascaFontSize.md,
+                            onTap: () {},
                           ),
                         ),
                       ],
@@ -285,10 +232,10 @@ class _Brand extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               alignment: Alignment.center,
-              child: SvgPicture.asset(
-                'assets/icons/bag-shopping.svg',
-                height: 22,
-                colorFilter: ColorFilter.mode(colors.onInfo, BlendMode.srcIn),
+              child: CascaIcon(
+                CascaIcons.bagShopping,
+                size: 22,
+                color: colors.onInfo,
               ),
             ),
             const SizedBox(width: CascaSpacing.space3),

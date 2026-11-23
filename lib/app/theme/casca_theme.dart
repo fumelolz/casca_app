@@ -43,6 +43,8 @@ abstract final class CascaTheme {
       useMaterial3: true,
       visualDensity: VisualDensity.standard,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: Colors.transparent,
       brightness: brightness,
       colorScheme: scheme,
       scaffoldBackgroundColor: c.background,
@@ -124,6 +126,16 @@ abstract final class CascaTheme {
           minimumSize: buttonSize,
           textStyle: buttonText,
           shape: buttonShape,
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+          splashFactory: NoSplash.splashFactory,
+          overlayColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.hovered)
+                ? c.surfaceHover
+                : Colors.transparent,
+          ),
         ),
       ),
       dialogTheme: DialogThemeData(
