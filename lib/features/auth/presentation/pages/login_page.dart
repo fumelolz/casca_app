@@ -6,6 +6,7 @@ import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_icon.dart';
 import 'package:casca_app/shared/ui/casca_input.dart';
 import 'package:casca_app/shared/ui/casca_link.dart';
+import 'package:casca_app/shared/ui/casca_overlay_loader.dart';
 import 'package:casca_app/core/errors/api_exception.dart';
 import 'package:casca_app/features/auth/presentation/providers/login_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -199,6 +200,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ],
               ),
             ),
+          ),
+          CascaOverlayLoader(
+            visible: loading,
+            heading: 'Bienvenido',
+            message: 'Preparando todo para ti',
           ),
         ],
       ),
