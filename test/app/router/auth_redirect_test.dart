@@ -1,4 +1,4 @@
-import 'package:casca_app/app/router/app_routes.dart';
+import 'package:casca_app/core/routing/app_routes.dart';
 import 'package:casca_app/app/router/auth_redirect.dart';
 import 'package:casca_app/core/auth/auth_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,6 +30,17 @@ void main() {
       expect(
         authRedirect(AuthStatus.unauthenticated, AppRoutes.home),
         AppRoutes.login,
+      );
+    });
+
+    test('permite las pantallas de recuperación', () {
+      expect(
+        authRedirect(AuthStatus.unauthenticated, AppRoutes.forgotPassword),
+        isNull,
+      );
+      expect(
+        authRedirect(AuthStatus.unauthenticated, AppRoutes.setPassword),
+        isNull,
       );
     });
 

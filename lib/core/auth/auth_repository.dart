@@ -37,6 +37,33 @@ class AuthRepository {
     return _api.postVoid(AuthEndpoints.forgotPassword, body: {'email': email});
   }
 
+  Future<String> verifyResetCode({
+    required String email,
+    required String code,
+  }) {
+    return _api.post<String>(
+      AuthEndpoints.verifyResetCode,
+      body: {'email': email, 'code': code},
+      decode: (data) =>
+          (data as Map<String, dynamic>)['sessionToken'] as String,
+    );
+  }
+
+  Future<void> changePassword({
+    required String sessionToken,
+    required String newPassword,
+    required String confirmPassword,
+  }) {
+    return _api.postVoid(
+      AuthEndpoints.changePassword,
+      body: {
+        'sessionToken': sessionToken,
+        'newPassword': newPassword,
+        'confirmPassword': confirmPassword,
+      },
+    );
+  }
+
   static SessionState _decodeSession(Object? data) {
     return SessionState.fromJson(data as Map<String, dynamic>);
   }

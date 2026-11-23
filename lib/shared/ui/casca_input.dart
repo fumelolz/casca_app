@@ -1,6 +1,7 @@
 import 'package:casca_app/app/theme/casca_spacing.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/shared/ui/casca_icon.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 const double _disabledOpacity = 0.7;
@@ -20,6 +21,8 @@ class CascaInput extends StatefulWidget {
     this.keyboardType,
     this.textInputAction,
     this.autofillHints,
+    this.autofocus = false,
+    this.maxLength,
     this.validator,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
     this.showErrorMessage = true,
@@ -37,6 +40,8 @@ class CascaInput extends StatefulWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final Iterable<String>? autofillHints;
+  final bool autofocus;
+  final int? maxLength;
   final FormFieldValidator<String>? validator;
   final AutovalidateMode autovalidateMode;
   final bool showErrorMessage;
@@ -130,6 +135,10 @@ class _CascaInputState extends State<CascaInput> {
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
       autofillHints: widget.autofillHints,
+      autofocus: widget.autofocus,
+      inputFormatters: widget.maxLength == null
+          ? null
+          : [LengthLimitingTextInputFormatter(widget.maxLength)],
       onChanged: (value) => _handleChanged(state, value),
       onSubmitted: widget.onFieldSubmitted,
       style: theme.textTheme.bodyMedium,

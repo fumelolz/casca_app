@@ -3,7 +3,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:material_ui/material_ui.dart';
 
 abstract final class CascaIcons {
+  static const String arrowLeft = 'assets/icons/arrow-left.svg';
   static const String bagShopping = 'assets/icons/bag-shopping.svg';
+  static const String check = 'assets/icons/check.svg';
+  static const String circle = 'assets/icons/circle.svg';
+  static const String circleCheck = 'assets/icons/circle-check.svg';
+  static const String key = 'assets/icons/key.svg';
   static const String envelope = 'assets/icons/envelope.svg';
   static const String eye = 'assets/icons/eye.svg';
   static const String eyeSlash = 'assets/icons/eye-slash.svg';
