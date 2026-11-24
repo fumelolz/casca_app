@@ -12,10 +12,8 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 const double mobileBottomBarHeight = 64;
-const double mobileBottomBarHump = 28;
+const double mobileBottomBarLift = 28;
 const double _borderWidth = 1;
-const double _curveHeight = 12;
-const double _curveWidth = 132;
 const double _iconSize = 24;
 const double _circleSize = 56;
 const double _circleRing = 4;
@@ -48,40 +46,47 @@ class MobileBottomBar extends ConsumerWidget {
     final tabs = ref.watch(navigationProvider.select((nav) => nav.mobileTabs));
     final controller = ref.read(sidebarProvider.notifier);
 
-    final posIndex = tabs.indexWhere((tab) => tab.id == posTabId);
-    final hasHump = posIndex >= 0;
-    final hump = hasHump ? mobileBottomBarHump : 0.0;
+    final hasPos = tabs.any((tab) => tab.id == posTabId);
+    final lift = hasPos ? mobileBottomBarLift : 0.0;
 
     return SizedBox(
-      height: hump + mobileBottomBarExtent(bottomInset),
-      child: CustomPaint(
-        painter: _BarPainter(
-          fill: colors.surface,
-          border: colors.border,
-          hump: hump,
-          humpCenter: hasHump ? (posIndex + 0.5) / tabs.length : null,
-        ),
-        child: Padding(
-          padding: EdgeInsets.only(top: _borderWidth, bottom: bottomInset),
-          child: Row(
-            children: [
-              for (final tab in tabs)
-                Expanded(
-                  child: _BarItem(
-                    icon: tab.icon,
-                    label: tab.label,
-                    active: isItemActive(location, tab),
-                    lifted: tab.id == posTabId,
-                    hump: hump,
-                    onTap: () {
-                      controller.closeMobile();
-                      context.go(tab.route!);
-                    },
-                  ),
-                ),
-            ],
+      height: lift + mobileBottomBarExtent(bottomInset),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            top: lift,
+            bottom: 0,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.surface,
+                border: Border(top: BorderSide(color: colors.border)),
+              ),
+            ),
           ),
-        ),
+          Padding(
+            padding: EdgeInsets.only(top: _borderWidth, bottom: bottomInset),
+            child: Row(
+              children: [
+                for (final tab in tabs)
+                  Expanded(
+                    child: _BarItem(
+                      icon: tab.icon,
+                      label: tab.label,
+                      active: isItemActive(location, tab),
+                      lifted: tab.id == posTabId,
+                      lift: lift,
+                      onTap: () {
+                        controller.closeMobile();
+                        context.go(tab.route!);
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -93,7 +98,7 @@ class _BarItem extends StatefulWidget {
     required this.label,
     required this.active,
     required this.lifted,
-    required this.hump,
+    required this.lift,
     required this.onTap,
   });
 
@@ -101,7 +106,7 @@ class _BarItem extends StatefulWidget {
   final String label;
   final bool active;
   final bool lifted;
-  final double hump;
+  final double lift;
   final VoidCallback onTap;
 
   @override
@@ -204,7 +209,7 @@ class _BarItemState extends State<_BarItem>
                 alignment: Alignment.topCenter,
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(top: widget.hump),
+                    padding: EdgeInsets.only(top: widget.lift),
                     child: content,
                   ),
                   ScaleTransition(
@@ -214,7 +219,7 @@ class _BarItemState extends State<_BarItem>
                 ],
               )
             : Padding(
-                padding: EdgeInsets.only(top: widget.hump),
+                padding: EdgeInsets.only(top: widget.lift),
                 child: content,
               );
 
@@ -286,79 +291,5 @@ class _Circle extends StatelessWidget {
         );
       },
     );
-  }
-}
-
-class _BarPainter extends CustomPainter {
-  const _BarPainter({
-    required this.fill,
-    required this.border,
-    required this.hump,
-    required this.humpCenter,
-  });
-
-  final Color fill;
-  final Color border;
-  final double hump;
-  final double? humpCenter;
-
-  Path _topLine(Size size) {
-    final path = Path()..moveTo(0, hump);
-    final fraction = humpCenter;
-
-    if (fraction != null) {
-      final center = size.width * fraction;
-      final half = _curveWidth / 2;
-      final peak = hump - _curveHeight;
-      path
-        ..lineTo(center - half, hump)
-        ..cubicTo(
-          center - half * 0.55,
-          hump,
-          center - half * 0.45,
-          peak,
-          center,
-          peak,
-        )
-        ..cubicTo(
-          center + half * 0.45,
-          peak,
-          center + half * 0.55,
-          hump,
-          center + half,
-          hump,
-        );
-    }
-
-    return path..lineTo(size.width, hump);
-  }
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final top = _topLine(size);
-    final shape = Path.from(top)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-
-    canvas.drawPath(shape, Paint()..color = fill);
-    canvas.drawPath(
-      top,
-      Paint()
-        ..color = border
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = _borderWidth,
-    );
-  }
-
-  @override
-  bool hitTest(Offset position) => false;
-
-  @override
-  bool shouldRepaint(_BarPainter oldDelegate) {
-    return oldDelegate.fill != fill ||
-        oldDelegate.border != border ||
-        oldDelegate.hump != hump ||
-        oldDelegate.humpCenter != humpCenter;
   }
 }

@@ -463,19 +463,20 @@ void main() {
     });
 
     group('barra inferior', () {
-      testWidgets('muestra los cinco accesos con Vender en el centro', (
-        tester,
-      ) async {
-        await _openApp(tester, size: _phone);
+      testWidgets(
+        'muestra los cinco accesos con Vender en el centro, sobre la barra',
+        (tester) async {
+          await _openApp(tester, size: _phone);
 
-        final labels = ['Inicio', 'Ventas', 'Vender', 'Caja', 'Productos'];
-        final xs = [
-          for (final label in labels) tester.getCenter(_inBar(label)).dx,
-        ];
+          final labels = ['Inicio', 'Ventas', 'Vender', 'Caja', 'Productos'];
+          final xs = [
+            for (final label in labels) tester.getCenter(_inBar(label)).dx,
+          ];
 
-        expect(xs, orderedEquals([...xs]..sort()));
-        expect(xs[2], closeTo(200, 1));
-      });
+          expect(xs, orderedEquals([...xs]..sort()));
+          expect(xs[2], closeTo(200, 1));
+        },
+      );
 
       testWidgets('con menos permisos Vender sigue en el medio', (
         tester,
@@ -514,7 +515,9 @@ void main() {
         expect(_inBar('Productos'), findsNothing);
       });
 
-      testWidgets('sin permiso de vender no hay joroba', (tester) async {
+      testWidgets('sin permiso de vender la barra queda baja y sin círculo', (
+        tester,
+      ) async {
         await _openApp(
           tester,
           size: _phone,
@@ -527,14 +530,14 @@ void main() {
         expect(tester.getSize(find.byType(MobileBottomBar)).height, 64 + 1);
       });
 
-      testWidgets('con Vender la barra crece lo que mide la joroba', (
+      testWidgets('con Vender la barra reserva arriba el espacio del círculo', (
         tester,
       ) async {
         await _openApp(tester, size: _phone);
 
         expect(
           tester.getSize(find.byType(MobileBottomBar)).height,
-          64 + 1 + mobileBottomBarHump,
+          64 + 1 + mobileBottomBarLift,
         );
       });
 
@@ -656,18 +659,19 @@ void main() {
         expect(inPage('Ventas realizadas'), findsOneWidget);
       });
 
-      testWidgets('la joroba también es tocable y lleva a Vender', (
-        tester,
-      ) async {
-        await _openApp(tester, size: _phone);
-        final top = tester.getTopLeft(find.byType(MobileBottomBar)).dy;
+      testWidgets(
+        'la zona alta del círculo también es tocable y lleva a Vender',
+        (tester) async {
+          await _openApp(tester, size: _phone);
+          final top = tester.getTopLeft(find.byType(MobileBottomBar)).dy;
 
-        await tester.tapAt(Offset(200, top + 6));
-        await tester.pumpAndSettle();
+          await tester.tapAt(Offset(200, top + 6));
+          await tester.pumpAndSettle();
 
-        expect(inPage('Vender'), findsOneWidget);
-        expect(_isTabActive(tester, 'Vender'), isTrue);
-      });
+          expect(inPage('Vender'), findsOneWidget);
+          expect(_isTabActive(tester, 'Vender'), isTrue);
+        },
+      );
 
       testWidgets('Productos sigue activo en sus subrutas', (tester) async {
         await _openApp(tester, size: _phone);
@@ -769,7 +773,7 @@ void main() {
         final page = tester.getRect(find.byKey(const Key('home-page')));
 
         expect(bar.bottom, 800);
-        expect(bar.height, 64 + 1 + navigation + mobileBottomBarHump);
+        expect(bar.height, 64 + 1 + navigation + mobileBottomBarLift);
         expect(
           tester.getBottomLeft(_inBar('Vender')).dy,
           lessThanOrEqualTo(800 - navigation),
