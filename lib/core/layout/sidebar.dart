@@ -22,9 +22,10 @@ const double _itemHeight = CascaSpacing.space8;
 const double _subItemHeight = 36;
 const double _compactItemSize = CascaSpacing.space8;
 const double _expandedIconBox = 20;
-const double _expandedIconSize = CascaFontSize.md;
-const double _compactIconSize = 18;
+const double _expandedIconSize = 20;
+const double _compactIconSize = 22;
 const double _flyoutMinWidth = 224;
+const double _flyoutIconSize = 16;
 const double _submenuIndent = CascaSpacing.space3 + 10;
 const double _treeGap = CascaSpacing.space3;
 
@@ -340,7 +341,7 @@ class _Brand extends StatelessWidget {
         boxShadow: CascaShadows.sm,
       ),
       child: CascaIcon(
-        CascaIcons.bagShopping,
+        CascaIcons.brandBag,
         size: CascaFontSize.md,
         color: colors.onPrimary,
       ),
@@ -464,7 +465,12 @@ class _SidebarTileState extends State<_SidebarTile> {
 
     final content = compact
         ? Center(
-            child: CascaIcon(icon!, size: _compactIconSize, color: iconColor),
+            child: CascaIcon(
+              icon!,
+              size: _compactIconSize,
+              color: iconColor,
+              filled: active || widget.parentActive,
+            ),
           )
         : Row(
             children: [
@@ -475,6 +481,7 @@ class _SidebarTileState extends State<_SidebarTile> {
                     child: CascaIcon(
                       icon,
                       size: _expandedIconSize,
+                      filled: active || widget.parentActive,
                       color: iconColor,
                     ),
                   ),
@@ -665,8 +672,9 @@ class _FlyoutLinkState extends State<_FlyoutLink> {
                   child: Center(
                     child: CascaIcon(
                       widget.item.icon,
-                      size: CascaFontSize.sm,
+                      size: _flyoutIconSize,
                       color: iconColor,
+                      filled: active,
                     ),
                   ),
                 ),

@@ -8,7 +8,7 @@ Do not introduce comments in code (rule in `../CLAUDE.md`): this includes `///` 
 
 Flutter, Dart. Verify versions in `pubspec.yaml`; do not add, remove or upgrade dependencies without approval (see root). The app imports `package:material_ui/material_ui.dart` (as the project template does), not `material.dart`.
 
-Installed: `flutter_svg` (SVG icons in `assets/icons/`, drawn only through `CascaIcon`/`CascaIcons`, copied from the Font Awesome Free set used by casca-web; keep the license comment inside each SVG, CC BY 4.0). Do not use icon fonts.
+Installed: `flutter_svg` (SVG icons in `assets/icons/`, drawn only through `CascaIcon`/`CascaIcons`). The set is Phosphor Icons (MIT, license in `assets/icons/PHOSPHOR_LICENSE.txt`), copied as SVG, not as a package: each icon has an outline file `name.svg` and a filled one `name-fill.svg`. Use the outline by default and `CascaIcon(..., filled: true)` for active/selected states and brand marks; when adding an icon copy both variants. The Casca logo (the shopping bag) is the official mark and keeps the original Font Awesome Free SVG in `assets/brand/casca-bag.svg` (CC BY 4.0, keep the license comment inside) through `CascaIcons.brandBag`; never replace it with an icon-set equivalent and never use `filled` with it. Do not use icon fonts.
 
 Installed: `flutter_riverpod` (state), `go_router` (navigation), `dio` + `dio_cookie_manager` + `cookie_jar` (HTTP with cookie auth), `flutter_secure_storage` (encrypted cookie storage).
 

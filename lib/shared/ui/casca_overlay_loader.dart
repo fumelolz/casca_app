@@ -14,7 +14,7 @@ class CascaOverlayLoader extends StatefulWidget {
     required this.visible,
     this.heading = 'Cargando',
     this.message,
-    this.icon = CascaIcons.bagShopping,
+    this.icon = CascaIcons.brandBag,
   });
 
   final bool visible;

@@ -131,7 +131,7 @@ class _Brand extends StatelessWidget {
               ),
               alignment: Alignment.center,
               child: CascaIcon(
-                CascaIcons.bagShopping,
+                CascaIcons.brandBag,
                 size: 22,
                 color: colors.onInfo,
               ),

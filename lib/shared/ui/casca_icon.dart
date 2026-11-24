@@ -4,7 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 abstract final class CascaIcons {
   static const String arrowLeft = 'assets/icons/arrow-left.svg';
-  static const String bagShopping = 'assets/icons/bag-shopping.svg';
+  static const String brandBag = 'assets/brand/casca-bag.svg';
   static const String basketShopping = 'assets/icons/basket-shopping.svg';
   static const String check = 'assets/icons/check.svg';
   static const String chevronDown = 'assets/icons/chevron-down.svg';
@@ -39,8 +39,6 @@ abstract final class CascaIcons {
   static const String print = 'assets/icons/print.svg';
   static const String receipt = 'assets/icons/receipt.svg';
   static const String rightFromBracket = 'assets/icons/right-from-bracket.svg';
-  static const String squareCaretLeft = 'assets/icons/square-caret-left.svg';
-  static const String squareCaretRight = 'assets/icons/square-caret-right.svg';
   static const String tags = 'assets/icons/tags.svg';
   static const String userShield = 'assets/icons/user-shield.svg';
   static const String users = 'assets/icons/users.svg';
@@ -48,11 +46,18 @@ abstract final class CascaIcons {
 }
 
 class CascaIcon extends StatelessWidget {
-  const CascaIcon(this.asset, {super.key, this.size = 16, this.color});
+  const CascaIcon(
+    this.asset, {
+    super.key,
+    this.size = 16,
+    this.color,
+    this.filled = false,
+  });
 
   final String asset;
   final double size;
   final Color? color;
+  final bool filled;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +65,7 @@ class CascaIcon extends StatelessWidget {
         color ?? IconTheme.of(context).color ?? context.casca.textSecondary;
 
     return SvgPicture.asset(
-      asset,
+      filled ? asset.replaceFirst('.svg', '-fill.svg') : asset,
       height: size,
       colorFilter: ColorFilter.mode(resolvedColor, BlendMode.srcIn),
     );

@@ -74,7 +74,7 @@ class _TopbarIconButtonState extends State<TopbarIconButton> {
                 ),
                 child: CascaIcon(
                   widget.icon,
-                  size: widget.prominent ? CascaFontSize.lg : CascaFontSize.sm,
+                  size: widget.prominent ? 22 : 16,
                   color: raised || widget.prominent
                       ? colors.text
                       : colors.textSecondary,
