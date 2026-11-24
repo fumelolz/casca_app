@@ -15,11 +15,17 @@ SessionState fakeSession() => SessionState.fromJson({
 });
 
 class FakeAuthRepository implements AuthRepository {
-  FakeAuthRepository({this.hasSession = false, this.loginError, this.gate});
+  FakeAuthRepository({
+    this.hasSession = false,
+    this.loginError,
+    this.gate,
+    SessionState? session,
+  }) : _session = session ?? fakeSession();
 
   static const validCode = '123456';
   static const duplicatedEmail = 'duplicado@casca.com';
 
+  final SessionState _session;
   bool hasSession;
   Object? loginError;
   Completer<void>? gate;
@@ -32,7 +38,7 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<SessionState> me() async {
     if (!hasSession) throw unauthorized;
-    return fakeSession();
+    return _session;
   }
 
   @override
@@ -44,7 +50,7 @@ class FakeAuthRepository implements AuthRepository {
     final error = loginError;
     if (error != null) throw error;
     hasSession = true;
-    return fakeSession();
+    return _session;
   }
 
   @override
@@ -55,7 +61,7 @@ class FakeAuthRepository implements AuthRepository {
     }
     registrations.add(request);
     hasSession = true;
-    return fakeSession();
+    return _session;
   }
 
   @override
@@ -94,3 +100,43 @@ class FakeAuthRepository implements AuthRepository {
     passwordChanges.add('$sessionToken|$newPassword');
   }
 }
+
+const allPermissions = [
+  'dashboard.view',
+  'sale.create',
+  'sale.view',
+  'customer.view',
+  'cashregister.open',
+  'cashregister.shifts.view',
+  'product.view',
+  'category.view',
+  'inventory.view',
+  'inventory.review',
+  'store.view',
+  'cashregister.view',
+  'pricelist.view',
+  'storeuser.view',
+  'role.view',
+];
+
+SessionState fullAccessSession({
+  List<String> permissions = allPermissions,
+  String accountName = 'Daniel Magadan',
+  String storeName = 'Casa Magadan',
+}) => SessionState.fromJson({
+  'account': {'id': 'a1', 'email': 'x@y.com', 'name': accountName},
+  'roles': [],
+  'permissions': permissions,
+  'store': {
+    'id': 's1',
+    'name': storeName,
+    'taxesEnabled': true,
+    'isDefault': true,
+    'tenantId': 't1',
+    'tenantName': 'Casca Demo',
+    'businessType': null,
+  },
+  'stores': [],
+  'hasTenant': true,
+  'hasCompletedOnboarding': true,
+});

@@ -29,8 +29,10 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
     await tester.pumpAndSettle();
-    expect(find.text('Cerrar sesión'), findsOneWidget);
+    expect(find.byKey(const Key('home-page')), findsOneWidget);
 
+    await tester.tap(find.text('X').first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Cerrar sesión'));
     await tester.pumpAndSettle();
     expect(find.text('Iniciar sesión'), findsOneWidget);
@@ -254,7 +256,7 @@ void main() {
       expect(request.phone, '5551234567');
       expect(request.businessType, BusinessType.joyeria);
       expect(request.email, 'maria@casca.com');
-      expect(find.text('Cerrar sesión'), findsOneWidget);
+      expect(find.byKey(const Key('home-page')), findsOneWidget);
     });
 
     testWidgets('atrás conserva lo escrito en el paso 1', (tester) async {

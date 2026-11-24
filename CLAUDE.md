@@ -24,7 +24,7 @@ Feature-first. Mirrors `casca-web` (`core`, `features`, `shared`, theme) with Fl
 lib/
   main.dart
   app/ (app.dart, router/, theme/)
-  core/ (config, errors, network, auth, database, storage, sync, permissions, utils)
+  core/ (config, errors, network, auth, layout, routing, database, storage, sync, permissions, utils)
   shared/ (ui, widgets, extensions, formatters)
   features/<feature>/ (data, domain, presentation)
 test/ (mirrors lib/)
@@ -67,7 +67,7 @@ Source of truth: `lib/app/theme/`, ported from `casca-web/src/styles/tokens`.
 - Reuse `shared/ui` (`casca_*`) before creating new widgets. Do not use raw `ElevatedButton`, `TextField` or similar when a `casca_*` equivalent exists.
 - If no component covers the need, or it must be extended, ask the user first.
 - User-facing text in Spanish (see root).
-- Available in `shared/ui`: `CascaButton`, `CascaInput` (text, password, `inputFormatters`, `maxLength`, `autofillHints`), `CascaSelect` (dropdown below the field; options take an `icon` SVG or an `image`), `CascaLink`, `CascaIcon`/`CascaIcons`, `CascaOverlayLoader` (full-screen loader, place it last inside a `Stack`), `CascaStepProgress`. Input masks: `shared/formatters/MaskInputFormatter` (`phone`).
+- Available in `shared/ui`: `CascaButton`, `CascaInput` (text, password, `inputFormatters`, `maxLength`, `autofillHints`), `CascaSelect` (dropdown below the field; options take an `icon` SVG or an `image`), `CascaLink`, `CascaIcon`/`CascaIcons`, `CascaOverlayLoader` (full-screen loader, place it last inside a `Stack`), `CascaStepProgress`, `CascaPopover` (anchored panel with outside tap and Escape to close), `CascaActionMenu` (account-style menu built on it), `CascaTooltip` (hover tooltip, any side). Input masks: `shared/formatters/MaskInputFormatter` (`phone`).
 - Widgets of the same type in the same position reuse their `State`: when a screen swaps steps or views that contain stateful inputs, give each branch a distinct `key` (bug found in `RegisterPage`).
 
 ## State management
@@ -82,7 +82,9 @@ Riverpod: providers with lifecycle (`autoDispose`) per feature; no duplicated st
 - `go_router` in `app/router/` (`app_router.dart`, `auth_redirect.dart`); path constants and `guestRoutes` in `core/routing/app_routes.dart` (features import from there, never from `app/`).
 - Session lives in `core/auth/auth_controller.dart` (`AuthStatus` initializing/authenticated/unauthenticated, `signIn`, `register`, `signOut`, `restoreSession` via `/auth/me`, listens to `sessionExpiredProvider`). The router `redirect` follows it: never navigate by hand after login/logout.
 - `SessionState.activeStore` and `stores` can be null/empty (user without business): do not assume a store. Destination by `hasTenant`/`hasCompletedOnboarding` is not implemented yet.
+- Android draws edge-to-edge: the shell adds the status/navigation bar insets itself (topbar grows by the top inset, page uses `SafeArea(top: false)`, drawer bottom padding); auth screens use `SafeArea`; `app.dart` sets transparent system bars with icon brightness by theme. New full-screen pages outside the shell must use `SafeArea`.
 - Auth screens share `features/auth/presentation/widgets/auth_card_layout.dart`. Recovery flow: `forgot-password` -> `verify-reset-code` -> `change-password`.
+- App shell in `core/layout/` mirrors web `core/layout`: `AppShell` (sidebar + topbar + content, breakpoint 768: below it the sidebar is a drawer), `Sidebar` (expanded 240 / compact 64 with flyout for groups), `Topbar` (44 px borderless menu button that collapses the sidebar on desktop and opens the drawer on mobile, 44 px notification bell, account menu with logout; on mobile also the current section title, and the drawer also opens by swiping from the left edge), `PreferencesNav` (desktop: side panel on preference routes; mobile: a back bar to `/preferences`, the full list in `PreferencesHubPage` which the sidebar footer opens on mobile). Modules, sections and permissions live in `navigation_items.dart` (same ids/routes/permissions as web `NavigationService`); visibility is computed in `navigation_provider.dart` from the session permissions (UI only, the backend authorizes). Authenticated routes go inside the `ShellRoute` in `app/router/app_router.dart`; every module without a real screen uses `ModulePlaceholderPage` until its feature exists: replace the placeholder route, do not add the route twice. Pages inside the shell must not use `Scaffold` (the shell provides `Material`). Direct URL access is not blocked by permission yet (web has `permission.guard`).
 
 ## API communication
 

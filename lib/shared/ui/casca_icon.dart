@@ -19,6 +19,32 @@ abstract final class CascaIcons {
   static const String screwdriverWrench = 'assets/icons/screwdriver-wrench.svg';
   static const String store = 'assets/icons/store.svg';
   static const String xmark = 'assets/icons/xmark.svg';
+  static const String addressBook = 'assets/icons/address-book.svg';
+  static const String bars = 'assets/icons/bars.svg';
+  static const String bell = 'assets/icons/bell.svg';
+  static const String bellSlash = 'assets/icons/bell-slash.svg';
+  static const String building = 'assets/icons/building.svg';
+  static const String cashRegister = 'assets/icons/cash-register.svg';
+  static const String chartColumn = 'assets/icons/chart-column.svg';
+  static const String chevronRight = 'assets/icons/chevron-right.svg';
+  static const String clipboardList = 'assets/icons/clipboard-list.svg';
+  static const String clock = 'assets/icons/clock.svg';
+  static const String clockRotateLeft = 'assets/icons/clock-rotate-left.svg';
+  static const String cube = 'assets/icons/cube.svg';
+  static const String gear = 'assets/icons/gear.svg';
+  static const String globe = 'assets/icons/globe.svg';
+  static const String house = 'assets/icons/house.svg';
+  static const String list = 'assets/icons/list.svg';
+  static const String palette = 'assets/icons/palette.svg';
+  static const String print = 'assets/icons/print.svg';
+  static const String receipt = 'assets/icons/receipt.svg';
+  static const String rightFromBracket = 'assets/icons/right-from-bracket.svg';
+  static const String squareCaretLeft = 'assets/icons/square-caret-left.svg';
+  static const String squareCaretRight = 'assets/icons/square-caret-right.svg';
+  static const String tags = 'assets/icons/tags.svg';
+  static const String userShield = 'assets/icons/user-shield.svg';
+  static const String users = 'assets/icons/users.svg';
+  static const String wallet = 'assets/icons/wallet.svg';
 }
 
 class CascaIcon extends StatelessWidget {

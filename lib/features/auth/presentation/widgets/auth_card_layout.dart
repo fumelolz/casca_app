@@ -34,48 +34,50 @@ class AuthCardLayout extends StatelessWidget {
           Positioned.fill(
             child: CustomPaint(painter: _GlowPainter(colors.infoSoft)),
           ),
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: CascaSpacing.space4,
-                vertical: CascaSpacing.space6,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const _Brand(),
-                  const SizedBox(height: CascaSpacing.space6),
-                  Container(
-                    width: _cardWidth,
-                    padding: const EdgeInsets.all(_cardPadding),
-                    decoration: BoxDecoration(
-                      color: colors.surface,
-                      borderRadius: CascaRadius.sm,
-                      border: Border.all(
-                        color: colors.border.withValues(alpha: 0.6),
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x1F0F172A),
-                          blurRadius: 50,
-                          spreadRadius: -12,
-                          offset: Offset(0, 20),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: CascaSpacing.space4,
+                  vertical: CascaSpacing.space6,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const _Brand(),
+                    const SizedBox(height: CascaSpacing.space6),
+                    Container(
+                      width: _cardWidth,
+                      padding: const EdgeInsets.all(_cardPadding),
+                      decoration: BoxDecoration(
+                        color: colors.surface,
+                        borderRadius: CascaRadius.sm,
+                        border: Border.all(
+                          color: colors.border.withValues(alpha: 0.6),
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        child,
-                        if (showBackLink) ...[
-                          const SizedBox(height: CascaSpacing.space5),
-                          const _BackToLogin(),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x1F0F172A),
+                            blurRadius: 50,
+                            spreadRadius: -12,
+                            offset: Offset(0, 20),
+                          ),
                         ],
-                      ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          child,
+                          if (showBackLink) ...[
+                            const SizedBox(height: CascaSpacing.space5),
+                            const _BackToLogin(),
+                          ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

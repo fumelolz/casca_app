@@ -60,6 +60,7 @@ class CascaSelect<T> extends StatefulWidget {
 class _CascaSelectState<T> extends State<CascaSelect<T>> {
   final _portal = OverlayPortalController();
   final _link = LayerLink();
+  final _focus = FocusNode();
   final _triggerKey = GlobalKey();
 
   Size _triggerSize = Size.zero;
@@ -100,6 +101,9 @@ class _CascaSelectState<T> extends State<CascaSelect<T>> {
       _menuHeight = wanted < space ? wanted : space;
     });
     _portal.show();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _portal.isShowing) _focus.requestFocus();
+    });
   }
 
   void _closeMenu() {
@@ -112,6 +116,12 @@ class _CascaSelectState<T> extends State<CascaSelect<T>> {
     _formState?.didChange(option.value);
     widget.onChanged(option.value);
     _closeMenu();
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
   }
 
   @override
@@ -264,7 +274,7 @@ class _CascaSelectState<T> extends State<CascaSelect<T>> {
               width: _triggerSize.width,
               height: _menuHeight,
               child: Focus(
-                autofocus: true,
+                focusNode: _focus,
                 onKeyEvent: (node, event) {
                   if (event is KeyDownEvent &&
                       event.logicalKey == LogicalKeyboardKey.escape) {

@@ -109,4 +109,8 @@ class SessionState {
   final String? tenantName;
 
   bool hasPermission(String permission) => permissions.contains(permission);
+
+  bool hasAnyPermission(Iterable<String> candidates) {
+    return candidates.any(permissions.contains);
+  }
 }

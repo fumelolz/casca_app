@@ -1,0 +1,554 @@
+import 'dart:ui';
+
+import 'package:casca_app/app/router/app_router.dart';
+import 'package:casca_app/app/theme/casca_colors.dart';
+import 'package:casca_app/app/theme/casca_theme.dart';
+import 'package:casca_app/core/auth/auth_repository.dart';
+import 'package:casca_app/core/auth/session_state.dart';
+import 'package:casca_app/core/layout/preferences_nav.dart';
+import 'package:casca_app/core/layout/sidebar.dart';
+import 'package:casca_app/core/layout/topbar.dart';
+import 'package:casca_app/core/layout/topbar_icon_button.dart';
+import 'package:casca_app/shared/ui/casca_tooltip.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
+
+import '../../support/fake_auth_repository.dart';
+
+const _desktop = Size(1100, 800);
+const _phone = Size(400, 800);
+
+Future<void> _openApp(
+  WidgetTester tester, {
+  Size size = _desktop,
+  SessionState? session,
+  FakeViewPadding padding = FakeViewPadding.zero,
+}) async {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  tester.view.padding = padding;
+  tester.view.viewPadding = padding;
+
+  final repo = FakeAuthRepository(
+    hasSession: true,
+    session: session ?? fullAccessSession(),
+  );
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [authRepositoryProvider.overrideWithValue(repo)],
+      child: Consumer(
+        builder: (context, ref, _) => MaterialApp.router(
+          theme: CascaTheme.light,
+          routerConfig: ref.watch(routerProvider),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+Finder _inSidebar(String text) {
+  return find.descendant(of: find.byType(Sidebar), matching: find.text(text));
+}
+
+Finder _inBackBar() {
+  return find.descendant(
+    of: find.byType(PreferencesNav),
+    matching: find.text('Preferencias'),
+  );
+}
+
+Color? _tileColor(WidgetTester tester, String label) {
+  final tile = find
+      .ancestor(of: _inSidebar(label), matching: find.byType(AnimatedContainer))
+      .first;
+  final decoration = tester.widget<AnimatedContainer>(tile).decoration;
+  return (decoration as BoxDecoration?)?.color;
+}
+
+Future<void> _tap(WidgetTester tester, Finder finder) async {
+  await tester.tap(finder);
+  await tester.pumpAndSettle();
+}
+
+Future<void> _collapse(WidgetTester tester) async {
+  await _tap(tester, find.byType(TopbarIconButton).first);
+}
+
+void main() {
+  group('escritorio', () {
+    testWidgets('muestra las secciones y los módulos permitidos', (
+      tester,
+    ) async {
+      await _openApp(tester);
+
+      expect(find.text('PRINCIPAL'), findsOneWidget);
+      expect(find.text('OPERACIÓN'), findsOneWidget);
+      expect(find.text('CATÁLOGO'), findsOneWidget);
+      expect(_inSidebar('Ventas realizadas'), findsOneWidget);
+      expect(_inSidebar('Control de caja'), findsOneWidget);
+      expect(_inSidebar('Preferencias'), findsOneWidget);
+      expect(find.byType(Sidebar), findsOneWidget);
+    });
+
+    testWidgets('oculta los módulos sin permiso', (tester) async {
+      await _openApp(
+        tester,
+        session: fullAccessSession(permissions: ['sale.view']),
+      );
+
+      expect(_inSidebar('Ventas realizadas'), findsOneWidget);
+      expect(_inSidebar('Vender'), findsNothing);
+      expect(_inSidebar('Productos'), findsNothing);
+    });
+
+    testWidgets('al tocar un módulo navega y lo marca como activo', (
+      tester,
+    ) async {
+      await _openApp(tester);
+      const primary = CascaColors.light;
+
+      await _tap(tester, _inSidebar('Clientes'));
+
+      expect(find.text('Clientes'), findsNWidgets(2));
+      expect(_tileColor(tester, 'Clientes'), primary.primary);
+      expect(_tileColor(tester, 'Vender'), isNull);
+    });
+
+    testWidgets('un grupo se despliega y navega a su hijo', (tester) async {
+      await _openApp(tester);
+      expect(_inSidebar('Lista de productos'), findsNothing);
+
+      await _tap(tester, _inSidebar('Productos'));
+      expect(_inSidebar('Lista de productos'), findsOneWidget);
+
+      await _tap(tester, _inSidebar('Categorías de productos'));
+
+      expect(find.text('Categorías de productos'), findsNWidgets(2));
+      expect(
+        _tileColor(tester, 'Categorías de productos'),
+        CascaColors.light.primary,
+      );
+      expect(_inSidebar('Lista de productos'), findsOneWidget);
+    });
+
+    testWidgets('un grupo se pliega al tocarlo de nuevo', (tester) async {
+      await _openApp(tester);
+
+      await _tap(tester, _inSidebar('Productos'));
+      await _tap(tester, _inSidebar('Productos'));
+
+      expect(_inSidebar('Lista de productos'), findsNothing);
+    });
+
+    testWidgets('el botón contrae el menú a solo iconos', (tester) async {
+      await _openApp(tester);
+      expect(
+        find.descendant(
+          of: find.byType(Sidebar),
+          matching: find.byType(IconButton),
+        ),
+        findsNothing,
+      );
+      expect(find.byType(TopbarIconButton), findsNWidgets(2));
+
+      await _collapse(tester);
+
+      expect(_inSidebar('Vender'), findsNothing);
+      expect(find.text('Casca'), findsNothing);
+      expect(find.byType(TopbarIconButton), findsNWidgets(2));
+
+      await _tap(tester, find.byType(TopbarIconButton).first);
+
+      expect(_inSidebar('Vender'), findsOneWidget);
+    });
+
+    testWidgets('el menú y la campana son botones grandes', (tester) async {
+      await _openApp(tester);
+
+      for (final button in find.byType(TopbarIconButton).evaluate()) {
+        final size = tester.getSize(find.byWidget(button.widget));
+        expect(size.width, greaterThanOrEqualTo(44));
+        expect(size.height, greaterThanOrEqualTo(44));
+      }
+    });
+
+    testWidgets('el botón del menú explica su acción al pasar el cursor', (
+      tester,
+    ) async {
+      await _openApp(tester);
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: Offset.zero);
+      addTearDown(mouse.removePointer);
+
+      await mouse.moveTo(tester.getCenter(find.byType(TopbarIconButton).first));
+      await tester.pump();
+      expect(find.text('Contraer menú'), findsOneWidget);
+
+      await tester.tap(find.byType(TopbarIconButton).first);
+      await tester.pumpAndSettle();
+      await mouse.moveTo(const Offset(700, 400));
+      await tester.pump();
+      await mouse.moveTo(tester.getCenter(find.byType(TopbarIconButton).first));
+      await tester.pump();
+
+      expect(find.text('Expandir menú'), findsOneWidget);
+    });
+    testWidgets('contraído muestra el nombre al pasar el cursor', (
+      tester,
+    ) async {
+      await _openApp(tester);
+      await _collapse(tester);
+
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await mouse.addPointer(location: Offset.zero);
+      addTearDown(mouse.removePointer);
+      await mouse.moveTo(tester.getCenter(find.byType(CascaTooltip).at(1)));
+      await tester.pump();
+
+      expect(find.text('Vender'), findsOneWidget);
+
+      await mouse.moveTo(const Offset(700, 400));
+      await tester.pump();
+
+      expect(find.text('Vender'), findsNothing);
+    });
+
+    testWidgets('contraído, un grupo abre un flyout con sus hijos', (
+      tester,
+    ) async {
+      await _openApp(tester);
+      await _collapse(tester);
+
+      await _tap(tester, find.byType(CascaTooltip).at(4));
+      expect(find.text('CONTROL DE CAJA'), findsOneWidget);
+      expect(find.text('Turno actual'), findsOneWidget);
+
+      await _tap(tester, find.text('Turno actual'));
+
+      expect(find.text('CONTROL DE CAJA'), findsNothing);
+      expect(find.text('Turno actual'), findsOneWidget);
+    });
+
+    testWidgets('Escape cierra el flyout', (tester) async {
+      await _openApp(tester);
+      await _collapse(tester);
+      await _tap(tester, find.byType(CascaTooltip).at(4));
+      expect(find.text('Turno actual'), findsOneWidget);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Turno actual'), findsNothing);
+    });
+
+    testWidgets('la barra superior muestra la tienda y el nombre', (
+      tester,
+    ) async {
+      await _openApp(tester);
+
+      expect(find.text('Casa Magadan'), findsOneWidget);
+      expect(find.text('Daniel Magadan'), findsOneWidget);
+      expect(find.text('D'), findsOneWidget);
+    });
+
+    testWidgets('el menú de cuenta ofrece cerrar sesión', (tester) async {
+      await _openApp(tester);
+
+      await _tap(tester, find.text('Casa Magadan'));
+
+      expect(find.text('MI CUENTA'), findsOneWidget);
+      expect(find.text('Cerrar sesión'), findsOneWidget);
+    });
+
+    testWidgets('las notificaciones están vacías y llevan a los negocios', (
+      tester,
+    ) async {
+      await _openApp(tester);
+
+      await _tap(tester, find.byType(TopbarIconButton).last);
+      expect(find.text('No tienes notificaciones.'), findsOneWidget);
+
+      await _tap(tester, find.text('Ver mis negocios'));
+
+      expect(find.text('No tienes notificaciones.'), findsNothing);
+      expect(find.text('Negocios'), findsWidgets);
+    });
+  });
+
+  group('preferencias', () {
+    testWidgets('el panel lateral solo aparece en preferencias', (
+      tester,
+    ) async {
+      await _openApp(tester);
+      expect(find.text('PREFERENCIAS'), findsNothing);
+
+      await _tap(tester, _inSidebar('Preferencias'));
+
+      expect(find.text('PREFERENCIAS'), findsOneWidget);
+      expect(find.text('Organización'), findsOneWidget);
+      expect(find.text('Catálogo en línea'), findsWidgets);
+    });
+
+    testWidgets('navegar dentro de preferencias marca el enlace activo', (
+      tester,
+    ) async {
+      await _openApp(tester);
+      await _tap(tester, _inSidebar('Preferencias'));
+
+      await _tap(tester, find.text('Apariencia'));
+
+      expect(find.text('Apariencia'), findsNWidgets(2));
+      expect(_tileColor(tester, 'Preferencias'), CascaColors.light.primary);
+    });
+  });
+
+  group('móvil', () {
+    testWidgets('el menú está oculto y se abre con el botón', (tester) async {
+      await _openApp(tester, size: _phone);
+
+      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
+      expect(find.text('Casca'), findsNothing);
+      expect(find.text('Casa Magadan'), findsNothing);
+
+      await _tap(tester, find.byType(TopbarIconButton).first);
+
+      expect(
+        tester.getTopLeft(_inSidebar('Vender')).dx,
+        greaterThanOrEqualTo(0),
+      );
+    });
+
+    testWidgets('al elegir un módulo navega y se cierra el menú', (
+      tester,
+    ) async {
+      await _openApp(tester, size: _phone);
+      await _tap(tester, find.byType(TopbarIconButton).first);
+
+      await _tap(tester, _inSidebar('Clientes'));
+
+      expect(find.text('Clientes'), findsNWidgets(3));
+      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
+    });
+
+    testWidgets('tocar el fondo oscuro cierra el menú', (tester) async {
+      await _openApp(tester, size: _phone);
+      await _tap(tester, find.byType(TopbarIconButton).first);
+
+      await tester.tapAt(const Offset(380, 500));
+      await tester.pumpAndSettle();
+
+      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
+    });
+
+    Finder inTopbar(String text) {
+      return find.descendant(
+        of: find.byType(Topbar),
+        matching: find.text(text),
+      );
+    }
+
+    testWidgets('el botón del menú es grande y no tiene borde', (tester) async {
+      await _openApp(tester, size: _phone);
+
+      final size = tester.getSize(find.byType(TopbarIconButton).first);
+
+      expect(size.width, greaterThanOrEqualTo(44));
+      expect(size.height, greaterThanOrEqualTo(44));
+    });
+
+    testWidgets('la barra muestra la sección actual', (tester) async {
+      await _openApp(tester, size: _phone);
+      expect(inTopbar('Inicio'), findsOneWidget);
+
+      await _tap(tester, find.byType(TopbarIconButton).first);
+      await _tap(tester, _inSidebar('Clientes'));
+
+      expect(inTopbar('Clientes'), findsOneWidget);
+      expect(inTopbar('Inicio'), findsNothing);
+    });
+
+    testWidgets('en escritorio la barra no muestra el título', (tester) async {
+      await _openApp(tester);
+      await _tap(tester, _inSidebar('Clientes'));
+
+      expect(inTopbar('Clientes'), findsNothing);
+    });
+
+    testWidgets('deslizar desde el borde izquierdo abre el menú', (
+      tester,
+    ) async {
+      await _openApp(tester, size: _phone);
+      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
+
+      await tester.dragFrom(const Offset(4, 400), const Offset(200, 0));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getTopLeft(_inSidebar('Vender')).dx,
+        greaterThanOrEqualTo(0),
+      );
+    });
+
+    testWidgets('deslizar desde otro punto no abre el menú', (tester) async {
+      await _openApp(tester, size: _phone);
+
+      await tester.dragFrom(const Offset(200, 400), const Offset(150, 0));
+      await tester.pumpAndSettle();
+
+      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
+    });
+
+    testWidgets('deslizar el menú hacia la izquierda lo cierra', (
+      tester,
+    ) async {
+      await _openApp(tester, size: _phone);
+      await _tap(tester, find.byType(TopbarIconButton).first);
+
+      await tester.fling(find.byType(Sidebar), const Offset(-200, 0), 1000);
+      await tester.pumpAndSettle();
+
+      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
+    });
+
+    group('márgenes del sistema', () {
+      const status = 40.0;
+      const navigation = 30.0;
+      const padding = FakeViewPadding(top: status, bottom: navigation);
+
+      testWidgets('la barra superior queda debajo de la barra de estado', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone, padding: padding);
+
+        expect(tester.getSize(find.byType(Topbar)).height, 64 + status);
+        expect(
+          tester.getTopLeft(find.byType(TopbarIconButton).first).dy,
+          greaterThanOrEqualTo(status),
+        );
+        expect(
+          tester.getTopLeft(find.text('Inicio').first).dy,
+          greaterThanOrEqualTo(status),
+        );
+      });
+
+      testWidgets('el contenido termina sobre la barra de navegación', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone, padding: padding);
+
+        final page = tester.getRect(find.byKey(const Key('home-page')));
+
+        expect(page.bottom, lessThanOrEqualTo(800 - navigation));
+      });
+
+      testWidgets('el menú abierto respeta ambos márgenes', (tester) async {
+        await _openApp(tester, size: _phone, padding: padding);
+        await _tap(tester, find.byType(TopbarIconButton).first);
+
+        expect(tester.getTopLeft(find.byType(Sidebar)).dy, 64 + status);
+        expect(
+          tester.getBottomLeft(_inSidebar('Preferencias')).dy,
+          lessThanOrEqualTo(800 - navigation),
+        );
+      });
+
+      testWidgets('en escritorio no se agregan márgenes', (tester) async {
+        await _openApp(tester);
+
+        expect(tester.getSize(find.byType(Topbar)).height, 64);
+      });
+    });
+    testWidgets('Escape cierra el menú', (tester) async {
+      await _openApp(tester, size: _phone);
+      await _tap(tester, find.byType(TopbarIconButton).first);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+
+      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
+    });
+
+    group('preferencias', () {
+      Future<void> openHub(WidgetTester tester) async {
+        await _openApp(tester, size: _phone);
+        await _tap(tester, find.byType(TopbarIconButton).first);
+        await _tap(tester, _inSidebar('Preferencias'));
+      }
+
+      testWidgets('el pie del menú abre la lista con todas las opciones', (
+        tester,
+      ) async {
+        await openHub(tester);
+
+        expect(find.byKey(const Key('preferences-hub')), findsOneWidget);
+        expect(find.text('GENERAL'), findsOneWidget);
+        expect(find.text('ORGANIZACIÓN'), findsOneWidget);
+        for (final label in [
+          'Catálogo en línea',
+          'Apariencia',
+          'Negocios',
+          'Sucursales',
+          'Empleados',
+          'Roles',
+        ]) {
+          expect(find.text(label), findsOneWidget, reason: label);
+        }
+        expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
+      });
+
+      testWidgets('la lista oculta las opciones sin permiso', (tester) async {
+        await _openApp(
+          tester,
+          size: _phone,
+          session: fullAccessSession(permissions: ['store.view']),
+        );
+        await _tap(tester, find.byType(TopbarIconButton).first);
+        await _tap(tester, _inSidebar('Preferencias'));
+
+        expect(find.text('Sucursales'), findsOneWidget);
+        expect(find.text('Roles'), findsNothing);
+        expect(find.text('Empleados'), findsNothing);
+      });
+
+      testWidgets('una opción abre su pantalla con barra para volver', (
+        tester,
+      ) async {
+        await openHub(tester);
+
+        await _tap(tester, find.text('Apariencia'));
+
+        expect(find.byKey(const Key('preferences-hub')), findsNothing);
+        expect(find.text('Apariencia'), findsNWidgets(2));
+        expect(_inBackBar(), findsOneWidget);
+        expect(find.text('PREFERENCIAS'), findsNothing);
+      });
+
+      testWidgets('la barra devuelve a la lista', (tester) async {
+        await openHub(tester);
+        await _tap(tester, find.text('Apariencia'));
+
+        await _tap(tester, _inBackBar());
+
+        expect(find.byKey(const Key('preferences-hub')), findsOneWidget);
+      });
+    });
+  });
+
+  group('escritorio sin lista', () {
+    testWidgets('el pie del menú abre la primera opción con panel lateral', (
+      tester,
+    ) async {
+      await _openApp(tester);
+
+      await _tap(tester, _inSidebar('Preferencias'));
+
+      expect(find.byKey(const Key('preferences-hub')), findsNothing);
+      expect(find.text('PREFERENCIAS'), findsOneWidget);
+      expect(find.text('Volver a preferencias'), findsNothing);
+    });
+  });
+}
