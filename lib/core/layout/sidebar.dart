@@ -414,12 +414,7 @@ class _SidebarTileState extends State<_SidebarTile> {
 
     Widget buildContent(Color textColor, Color iconColor) => compact
         ? Center(
-            child: CascaIcon(
-              icon!,
-              size: _compactIconSize,
-              color: iconColor,
-              filled: active || widget.parentActive,
-            ),
+            child: CascaIcon(icon!, size: _compactIconSize, color: iconColor),
           )
         : Row(
             children: [
@@ -430,7 +425,6 @@ class _SidebarTileState extends State<_SidebarTile> {
                     child: CascaIcon(
                       icon,
                       size: _expandedIconSize,
-                      filled: active || widget.parentActive,
                       color: iconColor,
                     ),
                   ),
@@ -636,7 +630,6 @@ class _FlyoutLinkState extends State<_FlyoutLink> {
                       widget.item.icon,
                       size: _flyoutIconSize,
                       color: iconColor,
-                      filled: active,
                     ),
                   ),
                 ),
