@@ -19,8 +19,6 @@ Map<String, dynamic> _loginJson({Object? permissions}) => {
   'permissions': ?permissions,
   'store': _store('s1', isDefault: true),
   'stores': [_store('s1', isDefault: true), _store('s2')],
-  'hasTenant': true,
-  'hasCompletedOnboarding': false,
   'tenantName': 'Casca Demo',
 };
 
@@ -31,10 +29,9 @@ void main() {
     );
 
     expect(session.account.email, 'dany@casca.com');
-    expect(session.activeStore?.id, 's1');
+    expect(session.activeStore.id, 's1');
     expect(session.stores.map((s) => s.id), ['s1', 's2']);
     expect(session.roles.single.name, 'Admin');
-    expect(session.hasCompletedOnboarding, isFalse);
   });
 
   test('si la respuesta no trae permissions usa una lista vacía', () {
@@ -44,28 +41,23 @@ void main() {
     expect(session.hasPermission('products.read'), isFalse);
   });
 
-  test('acepta una sesión sin tienda activa ni lista de tiendas', () {
-    final json = _loginJson()
-      ..remove('store')
-      ..remove('stores')
-      ..['hasTenant'] = false;
+  test('acepta una respuesta sin lista de tiendas', () {
+    final json = _loginJson()..remove('stores');
 
     final session = SessionState.fromJson(json);
 
-    expect(session.activeStore, isNull);
     expect(session.stores, isEmpty);
-    expect(session.hasTenant, isFalse);
   });
 
-  test('acepta store y stores en null explícito', () {
-    final json = _loginJson()
-      ..['store'] = null
-      ..['stores'] = null;
-
-    final session = SessionState.fromJson(json);
-
-    expect(session.activeStore, isNull);
-    expect(session.stores, isEmpty);
+  test('rechaza una respuesta sin tienda activa', () {
+    expect(
+      () => SessionState.fromJson(_loginJson()..remove('store')),
+      throwsA(isA<TypeError>()),
+    );
+    expect(
+      () => SessionState.fromJson(_loginJson()..['store'] = null),
+      throwsA(isA<TypeError>()),
+    );
   });
 
   test('hasPermission indica si la sesión incluye el permiso', () {

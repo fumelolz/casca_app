@@ -27,8 +27,6 @@ final _sessionJson = {
   'permissions': ['products.read'],
   'store': _storeJson,
   'stores': [_storeJson],
-  'hasTenant': true,
-  'hasCompletedOnboarding': true,
   'tenantName': 'Casca Demo',
 };
 
@@ -54,7 +52,7 @@ void main() {
     expect(sent?.path, AuthEndpoints.login);
     expect(sent?.data, {'email': 'dany@casca.com', 'password': 'secreto'});
     expect(session.account.name, 'Dany');
-    expect(session.activeStore?.id, 's1');
+    expect(session.activeStore.id, 's1');
   });
 
   test(

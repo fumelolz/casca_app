@@ -10,8 +10,15 @@ const unauthorized = ApiException(type: ApiErrorType.unauthorized);
 SessionState fakeSession() => SessionState.fromJson({
   'account': {'id': 'a1', 'email': 'x@y.com', 'name': 'X'},
   'roles': [],
-  'hasTenant': false,
-  'hasCompletedOnboarding': false,
+  'store': {
+    'id': 's1',
+    'name': 'Casa Magadan',
+    'taxesEnabled': true,
+    'isDefault': true,
+    'tenantId': 't1',
+    'tenantName': 'Casca Demo',
+    'businessType': null,
+  },
 });
 
 class FakeAuthRepository implements AuthRepository {
@@ -141,6 +148,4 @@ SessionState fullAccessSession({
     'businessType': null,
   },
   'stores': [],
-  'hasTenant': true,
-  'hasCompletedOnboarding': true,
 });

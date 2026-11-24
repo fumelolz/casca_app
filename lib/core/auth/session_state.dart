@@ -67,19 +67,17 @@ class SessionStore {
 class SessionState {
   const SessionState({
     required this.account,
+    required this.activeStore,
     required this.stores,
     required this.roles,
     required this.permissions,
-    required this.hasTenant,
-    required this.hasCompletedOnboarding,
-    this.activeStore,
     this.tenantName,
   });
 
   factory SessionState.fromJson(Map<String, dynamic> json) {
     return SessionState(
       account: SessionAccount.fromJson(json['account'] as Map<String, dynamic>),
-      activeStore: _storeFromJson(json['store']),
+      activeStore: SessionStore.fromJson(json['store'] as Map<String, dynamic>),
       stores: (json['stores'] as List<dynamic>? ?? const [])
           .map((store) => SessionStore.fromJson(store as Map<String, dynamic>))
           .toList(),
@@ -88,24 +86,15 @@ class SessionState {
           .toList(),
       permissions: (json['permissions'] as List<dynamic>? ?? const [])
           .cast<String>(),
-      hasTenant: json['hasTenant'] as bool,
-      hasCompletedOnboarding: json['hasCompletedOnboarding'] as bool,
       tenantName: json['tenantName'] as String?,
     );
   }
 
-  static SessionStore? _storeFromJson(Object? json) {
-    if (json == null) return null;
-    return SessionStore.fromJson(json as Map<String, dynamic>);
-  }
-
   final SessionAccount account;
-  final SessionStore? activeStore;
+  final SessionStore activeStore;
   final List<SessionStore> stores;
   final List<SessionRole> roles;
   final List<String> permissions;
-  final bool hasTenant;
-  final bool hasCompletedOnboarding;
   final String? tenantName;
 
   bool hasPermission(String permission) => permissions.contains(permission);

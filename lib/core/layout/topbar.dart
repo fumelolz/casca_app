@@ -106,7 +106,7 @@ class Topbar extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final session = ref.watch(authControllerProvider.select((s) => s.session));
     final accountName = session?.account.name;
-    final storeName = session?.activeStore?.name;
+    final storeName = session?.activeStore.name;
     final initial = (accountName != null && accountName.isNotEmpty)
         ? accountName.characters.first.toUpperCase()
         : '?';
