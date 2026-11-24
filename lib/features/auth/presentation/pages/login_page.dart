@@ -3,6 +3,7 @@ import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/app/theme/casca_typography.dart';
 import 'package:casca_app/core/errors/api_exception.dart';
 import 'package:casca_app/core/routing/app_routes.dart';
+import 'package:casca_app/core/storage/last_email_storage.dart';
 import 'package:casca_app/features/auth/presentation/providers/login_controller.dart';
 import 'package:casca_app/features/auth/presentation/widgets/auth_card_layout.dart';
 import 'package:casca_app/shared/ui/casca_button.dart';
@@ -25,6 +26,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _prefillEmail();
+  }
+
+  Future<void> _prefillEmail() async {
+    final email = await ref.read(lastEmailStorageProvider).read();
+    if (!mounted || email == null || _emailController.text.isNotEmpty) return;
+    _emailController.text = email;
+  }
 
   @override
   void dispose() {
