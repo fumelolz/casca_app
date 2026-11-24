@@ -5,7 +5,7 @@ String? authRedirect(AuthStatus status, String location) {
   final isGuestRoute = AppRoutes.guestRoutes.contains(location);
 
   return switch (status) {
-    AuthStatus.initializing =>
+    AuthStatus.initializing || AuthStatus.connectionFailed =>
       location == AppRoutes.splash ? null : AppRoutes.splash,
     AuthStatus.unauthenticated => isGuestRoute ? null : AppRoutes.login,
     AuthStatus.authenticated =>

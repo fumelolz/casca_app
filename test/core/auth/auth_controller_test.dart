@@ -48,6 +48,29 @@ void main() {
     expect(container.read(authControllerProvider).session, isNull);
   });
 
+  test('un error de red al restaurar no cierra la sesión', () async {
+    final repo = FakeAuthRepository(
+      hasSession: true,
+      meError: const ApiException(type: ApiErrorType.network),
+    );
+    final container = await _started(repo);
+
+    expect(_status(container), AuthStatus.connectionFailed);
+
+    repo.meError = null;
+    await container.read(authControllerProvider.notifier).restoreSession();
+
+    expect(_status(container), AuthStatus.authenticated);
+  });
+
+  test('un 401 al restaurar deja sin sesión', () async {
+    final container = await _started(
+      FakeAuthRepository(hasSession: true, meError: unauthorized),
+    );
+
+    expect(_status(container), AuthStatus.unauthenticated);
+  });
+
   test('signIn autentica con la sesión del login', () async {
     final container = await _started(FakeAuthRepository());
 

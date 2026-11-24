@@ -1,6 +1,7 @@
 import 'package:casca_app/app/router/app_router.dart';
 import 'package:casca_app/core/auth/auth_repository.dart';
 import 'package:casca_app/core/auth/register_request.dart';
+import 'package:casca_app/core/errors/api_exception.dart';
 import 'package:casca_app/features/auth/presentation/pages/splash_page.dart';
 
 import '../../support/fake_auth_repository.dart';
@@ -38,6 +39,26 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Iniciar sesión'), findsOneWidget);
     expect(find.text('Cerrar sesión'), findsNothing);
+  });
+
+  testWidgets('sin red al arrancar muestra reintentar y entra al reintentar', (
+    tester,
+  ) async {
+    final repo = FakeAuthRepository(
+      hasSession: true,
+      meError: const ApiException(type: ApiErrorType.network),
+    );
+    await tester.pumpWidget(_app(repo));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Reintentar'), findsOneWidget);
+    expect(find.text('Iniciar sesión'), findsNothing);
+
+    repo.meError = null;
+    await tester.tap(find.text('Reintentar'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('home-page')), findsOneWidget);
   });
 
   testWidgets('sin sesión abre login', (tester) async {

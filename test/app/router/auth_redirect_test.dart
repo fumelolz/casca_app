@@ -21,6 +21,19 @@ void main() {
     });
   });
 
+  group('connectionFailed', () {
+    test('se comporta como initializing y espera en splash', () {
+      expect(
+        authRedirect(AuthStatus.connectionFailed, AppRoutes.login),
+        AppRoutes.splash,
+      );
+      expect(
+        authRedirect(AuthStatus.connectionFailed, AppRoutes.splash),
+        isNull,
+      );
+    });
+  });
+
   group('unauthenticated', () {
     test('manda a login desde splash y home', () {
       expect(

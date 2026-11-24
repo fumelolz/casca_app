@@ -18,6 +18,7 @@ class FakeAuthRepository implements AuthRepository {
   FakeAuthRepository({
     this.hasSession = false,
     this.loginError,
+    this.meError,
     this.gate,
     SessionState? session,
   }) : _session = session ?? fakeSession();
@@ -28,6 +29,7 @@ class FakeAuthRepository implements AuthRepository {
   final SessionState _session;
   bool hasSession;
   Object? loginError;
+  Object? meError;
   Completer<void>? gate;
 
   bool loggedOut = false;
@@ -37,6 +39,8 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<SessionState> me() async {
+    final error = meError;
+    if (error != null) throw error;
     if (!hasSession) throw unauthorized;
     return _session;
   }
