@@ -7,9 +7,14 @@ import 'package:casca_app/shared/ui/casca_icon.dart';
 import 'package:material_ui/material_ui.dart';
 
 class BrandMark extends StatelessWidget {
-  const BrandMark({super.key, this.size = 36});
+  const BrandMark({
+    super.key,
+    this.size = 36,
+    this.iconSize = CascaFontSize.md,
+  });
 
   final double size;
+  final double iconSize;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +31,7 @@ class BrandMark extends StatelessWidget {
       ),
       child: CascaIcon(
         CascaIcons.brandBag,
-        size: CascaFontSize.md,
+        size: iconSize,
         color: colors.onPrimary,
       ),
     );

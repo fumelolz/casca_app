@@ -1,6 +1,7 @@
 import 'package:casca_app/app/router/app_router.dart';
 import 'package:casca_app/core/auth/auth_repository.dart';
 import 'package:casca_app/core/auth/register_request.dart';
+import 'package:casca_app/features/auth/presentation/pages/splash_page.dart';
 
 import '../../support/fake_auth_repository.dart';
 
@@ -26,7 +27,7 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(_app(FakeAuthRepository(hasSession: true)));
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(SplashPage), findsOneWidget);
 
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('home-page')), findsOneWidget);

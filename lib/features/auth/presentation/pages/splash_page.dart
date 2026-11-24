@@ -1,3 +1,5 @@
+import 'package:casca_app/app/theme/casca_theme.dart';
+import 'package:casca_app/core/layout/brand_lockup.dart';
 import 'package:material_ui/material_ui.dart';
 
 class SplashPage extends StatelessWidget {
@@ -5,6 +7,9 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return Scaffold(
+      backgroundColor: context.casca.background,
+      body: const Center(child: BrandMark(size: 120, iconSize: 60)),
+    );
   }
 }
