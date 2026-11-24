@@ -114,10 +114,10 @@ class _PreferenceLinkState extends State<_PreferenceLink> {
     final badge = widget.item.badge;
 
     final background = active
-        ? colors.primary.withValues(alpha: 0.12)
+        ? colors.text.withValues(alpha: 0.1)
         : (_hovered ? colors.surfaceHover : null);
     final textColor = active
-        ? colors.primary
+        ? colors.text
         : (_hovered ? colors.text : colors.textSecondary);
 
     return Semantics(

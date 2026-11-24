@@ -1,5 +1,6 @@
 import 'package:casca_app/app/router/auth_redirect.dart';
 import 'package:casca_app/app/router/module_placeholder_page.dart';
+import 'package:casca_app/app/router/shell_page.dart';
 import 'package:casca_app/core/auth/auth_controller.dart';
 import 'package:casca_app/core/layout/app_shell.dart';
 import 'package:casca_app/core/layout/navigation_items.dart';
@@ -64,21 +65,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: AppRoutes.home,
-            pageBuilder: (context, state) =>
-                const NoTransitionPage(child: HomePage()),
+            pageBuilder: (context, state) => shellPage(state, const HomePage()),
           ),
           GoRoute(
             path: AppRoutes.preferences,
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: PreferencesHubPage()),
+                shellPage(state, const PreferencesHubPage()),
           ),
           for (final item in _placeholderRoutes)
             GoRoute(
               path: item.route!,
-              pageBuilder: (context, state) => NoTransitionPage(
-                key: state.pageKey,
-                child: ModulePlaceholderPage(title: item.label),
-              ),
+              pageBuilder: (context, state) =>
+                  shellPage(state, ModulePlaceholderPage(title: item.label)),
             ),
         ],
       ),

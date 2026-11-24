@@ -2,6 +2,7 @@ import 'package:casca_app/app/theme/casca_spacing.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/app/theme/casca_typography.dart';
 import 'package:casca_app/core/auth/auth_controller.dart';
+import 'package:casca_app/core/layout/brand_lockup.dart';
 import 'package:casca_app/core/layout/notification_bell.dart';
 import 'package:casca_app/core/layout/sidebar.dart';
 import 'package:casca_app/core/layout/sidebar_controller.dart';
@@ -16,15 +17,15 @@ class Topbar extends ConsumerWidget {
   const Topbar({
     super.key,
     required this.isMobile,
-    this.title,
     this.insets = EdgeInsets.zero,
   });
 
   final bool isMobile;
-  final String? title;
   final EdgeInsets insets;
 
   static const double _avatarSize = 34;
+  static const double _brandMarkSize = 32;
+  static const double _productMinWidth = 360;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,7 +47,16 @@ class Topbar extends ConsumerWidget {
         children: [
           _buildMenuButton(ref, sidebar),
           if (isMobile)
-            Expanded(child: _buildTitle(context))
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: BrandLockup(
+                  markSize: _brandMarkSize,
+                  showProduct:
+                      MediaQuery.sizeOf(context).width >= _productMinWidth,
+                ),
+              ),
+            )
           else
             const Spacer(),
           const NotificationBell(),
@@ -59,23 +69,6 @@ class Topbar extends ConsumerWidget {
           const SizedBox(width: CascaSpacing.space3),
           _buildAccountMenu(context, ref),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTitle(BuildContext context) {
-    final colors = context.casca;
-    final title = this.title;
-    if (title == null) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.only(left: CascaSpacing.space1),
-      child: Text(
-        title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.titleLarge
-            ?.copyWith(color: colors.text),
       ),
     );
   }

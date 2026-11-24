@@ -9,11 +9,13 @@ class NavigationState {
     required this.sections,
     required this.preferences,
     required this.preferenceGroups,
+    required this.mobileTabs,
   });
 
   final List<NavigationSection> sections;
   final List<NavigationItem> preferences;
   final List<NavigationSection> preferenceGroups;
+  final List<NavigationItem> mobileTabs;
 }
 
 bool _allowed(NavigationItem item, SessionState? session) {
@@ -63,7 +65,19 @@ NavigationState buildNavigation(SessionState? session) {
     sections: _group(modules, 'Menú'),
     preferences: preferences,
     preferenceGroups: _group(preferences, ''),
+    mobileTabs: _centerPos([
+      for (final item in mobileTabModules)
+        if (_allowed(item, session)) item,
+    ]),
   );
+}
+
+List<NavigationItem> _centerPos(List<NavigationItem> tabs) {
+  final pos = tabs.where((tab) => tab.id == posTabId).firstOrNull;
+  if (pos == null) return tabs;
+
+  final others = tabs.where((tab) => tab.id != posTabId).toList();
+  return [...others]..insert(tabs.length ~/ 2, pos);
 }
 
 final navigationProvider = Provider<NavigationState>((ref) {

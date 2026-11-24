@@ -184,16 +184,47 @@ List<NavigationItem> get allNavigationRoutes {
   ].where((item) => item.route != null).toList();
 }
 
-const String _fallbackTitle = 'Casca';
+const posTabId = 'tab-pos';
 
-String navigationTitleFor(String location) {
-  if (location == AppRoutes.preferences) return 'Preferencias';
-
-  NavigationItem? best;
-  for (final item in allNavigationRoutes) {
-    final route = item.route!;
-    if (!isRouteActive(location, route)) continue;
-    if (best == null || route.length > best.route!.length) best = item;
-  }
-  return best?.label ?? _fallbackTitle;
-}
+const mobileTabModules = [
+  NavigationItem(
+    id: 'tab-dashboard',
+    label: 'Inicio',
+    icon: CascaIcons.house,
+    route: AppRoutes.home,
+    permission: 'dashboard.view',
+  ),
+  NavigationItem(
+    id: 'tab-sales',
+    label: 'Ventas',
+    icon: CascaIcons.receipt,
+    route: '/sales',
+    permission: 'sale.view',
+  ),
+  NavigationItem(
+    id: posTabId,
+    label: 'Vender',
+    icon: CascaIcons.cashRegister,
+    route: '/pos',
+    permission: 'sale.create',
+  ),
+  NavigationItem(
+    id: 'tab-cash-register',
+    label: 'Caja',
+    icon: CascaIcons.wallet,
+    route: '/cash-register/current-shift',
+    anyPermission: shiftWorkPermissions,
+    matchPrefixes: [
+      '/cash-register/current-shift',
+      '/cash-register/shift-history',
+    ],
+  ),
+  NavigationItem(
+    id: 'tab-products',
+    label: 'Productos',
+    icon: CascaIcons.cube,
+    route: '/products',
+    permission: 'product.view',
+    matchPrefixes: ['/products', '/inventory-counts'],
+  ),
+];

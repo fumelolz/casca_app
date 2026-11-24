@@ -5,6 +5,9 @@ import 'package:casca_app/app/theme/casca_colors.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/core/auth/auth_repository.dart';
 import 'package:casca_app/core/auth/session_state.dart';
+import 'package:casca_app/app/router/module_placeholder_page.dart';
+import 'package:casca_app/core/layout/brand_lockup.dart';
+import 'package:casca_app/core/layout/mobile_bottom_bar.dart';
 import 'package:casca_app/core/layout/preferences_nav.dart';
 import 'package:casca_app/core/layout/sidebar.dart';
 import 'package:casca_app/core/layout/topbar.dart';
@@ -61,6 +64,7 @@ Finder _inBackBar() {
   );
 }
 
+final _activeBackground = CascaColors.light.text.withValues(alpha: 0.1);
 Color? _tileColor(WidgetTester tester, String label) {
   final tile = find
       .ancestor(of: _inSidebar(label), matching: find.byType(AnimatedContainer))
@@ -72,6 +76,50 @@ Color? _tileColor(WidgetTester tester, String label) {
 Future<void> _tap(WidgetTester tester, Finder finder) async {
   await tester.tap(finder);
   await tester.pumpAndSettle();
+}
+
+Finder _inBar(String text) {
+  return find.descendant(
+    of: find.byType(MobileBottomBar),
+    matching: find.text(text),
+  );
+}
+
+Future<void> _openDrawer(WidgetTester tester) async {
+  await _tap(tester, find.byType(TopbarIconButton).first);
+}
+
+bool _isDrawerOpen(WidgetTester tester) {
+  return tester.getTopLeft(_inSidebar('Vender')).dx >= 0;
+}
+
+BoxDecoration _circleDecoration(WidgetTester tester) {
+  final circle = tester.widget<Container>(
+    find.byKey(const Key('vender-circle')),
+  );
+  return circle.decoration! as BoxDecoration;
+}
+
+Color? _circleRing(WidgetTester tester) => _circleDecoration(tester).color;
+
+bool _circleHasGlow(WidgetTester tester) {
+  final shadows = _circleDecoration(tester).boxShadow ?? const [];
+  return shadows.any((shadow) => shadow.color.a > 0 && shadow.spreadRadius > 0);
+}
+
+double _maxScale(WidgetTester tester) {
+  final scales = tester.widgetList<ScaleTransition>(
+    find.descendant(
+      of: find.byType(MobileBottomBar),
+      matching: find.byType(ScaleTransition),
+    ),
+  );
+  return scales.map((s) => s.scale.value).reduce((a, b) => a > b ? a : b);
+}
+
+bool _isTabActive(WidgetTester tester, String label) {
+  final text = tester.widget<Text>(_inBar(label));
+  return text.style?.color == CascaColors.light.text;
 }
 
 Future<void> _collapse(WidgetTester tester) async {
@@ -109,12 +157,11 @@ void main() {
       tester,
     ) async {
       await _openApp(tester);
-      const primary = CascaColors.light;
 
       await _tap(tester, _inSidebar('Clientes'));
 
       expect(find.text('Clientes'), findsNWidgets(2));
-      expect(_tileColor(tester, 'Clientes'), primary.primary);
+      expect(_tileColor(tester, 'Clientes'), _activeBackground);
       expect(_tileColor(tester, 'Vender'), isNull);
     });
 
@@ -128,10 +175,7 @@ void main() {
       await _tap(tester, _inSidebar('Categorías de productos'));
 
       expect(find.text('Categorías de productos'), findsNWidgets(2));
-      expect(
-        _tileColor(tester, 'Categorías de productos'),
-        CascaColors.light.primary,
-      );
+      expect(_tileColor(tester, 'Categorías de productos'), _activeBackground);
       expect(_inSidebar('Lista de productos'), findsOneWidget);
     });
 
@@ -302,48 +346,11 @@ void main() {
       await _tap(tester, find.text('Apariencia'));
 
       expect(find.text('Apariencia'), findsNWidgets(2));
-      expect(_tileColor(tester, 'Preferencias'), CascaColors.light.primary);
+      expect(_tileColor(tester, 'Preferencias'), _activeBackground);
     });
   });
 
   group('móvil', () {
-    testWidgets('el menú está oculto y se abre con el botón', (tester) async {
-      await _openApp(tester, size: _phone);
-
-      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
-      expect(find.text('Casca'), findsNothing);
-      expect(find.text('Casa Magadan'), findsNothing);
-
-      await _tap(tester, find.byType(TopbarIconButton).first);
-
-      expect(
-        tester.getTopLeft(_inSidebar('Vender')).dx,
-        greaterThanOrEqualTo(0),
-      );
-    });
-
-    testWidgets('al elegir un módulo navega y se cierra el menú', (
-      tester,
-    ) async {
-      await _openApp(tester, size: _phone);
-      await _tap(tester, find.byType(TopbarIconButton).first);
-
-      await _tap(tester, _inSidebar('Clientes'));
-
-      expect(find.text('Clientes'), findsNWidgets(3));
-      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
-    });
-
-    testWidgets('tocar el fondo oscuro cierra el menú', (tester) async {
-      await _openApp(tester, size: _phone);
-      await _tap(tester, find.byType(TopbarIconButton).first);
-
-      await tester.tapAt(const Offset(380, 500));
-      await tester.pumpAndSettle();
-
-      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
-    });
-
     Finder inTopbar(String text) {
       return find.descendant(
         of: find.byType(Topbar),
@@ -351,67 +358,389 @@ void main() {
       );
     }
 
-    testWidgets('el botón del menú es grande y no tiene borde', (tester) async {
-      await _openApp(tester, size: _phone);
+    Finder inPage(String text) {
+      return find.descendant(
+        of: find.byType(ModulePlaceholderPage),
+        matching: find.text(text),
+      );
+    }
 
-      final size = tester.getSize(find.byType(TopbarIconButton).first);
+    group('menú lateral', () {
+      testWidgets('está oculto y se abre con el botón de la barra', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
+        expect(_isDrawerOpen(tester), isFalse);
+        expect(find.text('Casca'), findsOneWidget);
+        expect(find.text('Casa Magadan'), findsNothing);
 
-      expect(size.width, greaterThanOrEqualTo(44));
-      expect(size.height, greaterThanOrEqualTo(44));
+        await _openDrawer(tester);
+
+        expect(_isDrawerOpen(tester), isTrue);
+      });
+
+      testWidgets('el botón es grande y la barra no tiene otro botón de menú', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
+
+        final size = tester.getSize(find.byType(TopbarIconButton).first);
+
+        expect(size.width, greaterThanOrEqualTo(44));
+        expect(size.height, greaterThanOrEqualTo(44));
+      });
+
+      testWidgets('al elegir un módulo navega y se cierra el menú', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
+        await _openDrawer(tester);
+
+        await _tap(tester, _inSidebar('Clientes'));
+
+        expect(inPage('Clientes'), findsOneWidget);
+        expect(_isDrawerOpen(tester), isFalse);
+      });
+
+      testWidgets('tapar el fondo oscuro cierra el menú', (tester) async {
+        await _openApp(tester, size: _phone);
+        await _openDrawer(tester);
+
+        await tester.tapAt(const Offset(380, 500));
+        await tester.pumpAndSettle();
+
+        expect(_isDrawerOpen(tester), isFalse);
+      });
+
+      testWidgets('Escape cierra el menú', (tester) async {
+        await _openApp(tester, size: _phone);
+        await _openDrawer(tester);
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+        await tester.pumpAndSettle();
+
+        expect(_isDrawerOpen(tester), isFalse);
+      });
+
+      testWidgets('deslizar desde el borde izquierdo abre el menú', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
+
+        await tester.dragFrom(const Offset(4, 400), const Offset(200, 0));
+        await tester.pumpAndSettle();
+
+        expect(_isDrawerOpen(tester), isTrue);
+      });
+
+      testWidgets('deslizar desde otro punto no abre el menú', (tester) async {
+        await _openApp(tester, size: _phone);
+
+        await tester.dragFrom(const Offset(200, 400), const Offset(150, 0));
+        await tester.pumpAndSettle();
+
+        expect(_isDrawerOpen(tester), isFalse);
+      });
+
+      testWidgets('deslizar el menú hacia la izquierda lo cierra', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
+        await _openDrawer(tester);
+
+        await tester.fling(find.byType(Sidebar), const Offset(-200, 0), 1000);
+        await tester.pumpAndSettle();
+
+        expect(_isDrawerOpen(tester), isFalse);
+      });
+
+      testWidgets('el menú abierto cubre la barra inferior', (tester) async {
+        await _openApp(tester, size: _phone);
+        await _openDrawer(tester);
+
+        expect(tester.getBottomLeft(find.byType(Sidebar)).dy, 800);
+      });
     });
 
-    testWidgets('la barra muestra la sección actual', (tester) async {
-      await _openApp(tester, size: _phone);
-      expect(inTopbar('Inicio'), findsOneWidget);
+    group('barra inferior', () {
+      testWidgets('muestra los cinco accesos con Vender en el centro', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
 
-      await _tap(tester, find.byType(TopbarIconButton).first);
-      await _tap(tester, _inSidebar('Clientes'));
+        final labels = ['Inicio', 'Ventas', 'Vender', 'Caja', 'Productos'];
+        final xs = [
+          for (final label in labels) tester.getCenter(_inBar(label)).dx,
+        ];
 
-      expect(inTopbar('Clientes'), findsOneWidget);
-      expect(inTopbar('Inicio'), findsNothing);
+        expect(xs, orderedEquals([...xs]..sort()));
+        expect(xs[2], closeTo(200, 1));
+      });
+
+      testWidgets('con menos permisos Vender sigue en el medio', (
+        tester,
+      ) async {
+        await _openApp(
+          tester,
+          size: _phone,
+          session: fullAccessSession(
+            permissions: [
+              'dashboard.view',
+              'sale.create',
+              'cashregister.open',
+              'product.view',
+            ],
+          ),
+        );
+
+        final labels = ['Inicio', 'Caja', 'Vender', 'Productos'];
+        final xs = [
+          for (final label in labels) tester.getCenter(_inBar(label)).dx,
+        ];
+
+        expect(xs, orderedEquals([...xs]..sort()));
+        expect(_inBar('Ventas'), findsNothing);
+      });
+
+      testWidgets('solo muestra los accesos con permiso', (tester) async {
+        await _openApp(
+          tester,
+          size: _phone,
+          session: fullAccessSession(permissions: ['sale.create']),
+        );
+
+        expect(_inBar('Vender'), findsOneWidget);
+        expect(_inBar('Inicio'), findsNothing);
+        expect(_inBar('Productos'), findsNothing);
+      });
+
+      testWidgets('sin permiso de vender no hay joroba', (tester) async {
+        await _openApp(
+          tester,
+          size: _phone,
+          session: fullAccessSession(
+            permissions: ['dashboard.view', 'product.view'],
+          ),
+        );
+
+        expect(_inBar('Vender'), findsNothing);
+        expect(tester.getSize(find.byType(MobileBottomBar)).height, 64 + 1);
+      });
+
+      testWidgets('con Vender la barra crece lo que mide la joroba', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
+
+        expect(
+          tester.getSize(find.byType(MobileBottomBar)).height,
+          64 + 1 + mobileBottomBarHump,
+        );
+      });
+
+      testWidgets('el acceso activo solo cambia de color, sin píldora', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
+        expect(_isTabActive(tester, 'Inicio'), isTrue);
+        expect(_isTabActive(tester, 'Caja'), isFalse);
+        expect(
+          find.descendant(
+            of: find.byType(MobileBottomBar),
+            matching: find.byType(AnimatedContainer),
+          ),
+          findsNothing,
+        );
+
+        await _tap(tester, _inBar('Caja'));
+
+        expect(_isTabActive(tester, 'Caja'), isTrue);
+        expect(_isTabActive(tester, 'Inicio'), isFalse);
+      });
+
+      testWidgets('al activarse un acceso hace un pequeño rebote', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
+        expect(_maxScale(tester), 1);
+
+        await tester.tap(_inBar('Ventas'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 80));
+
+        expect(_maxScale(tester), greaterThan(1));
+
+        await tester.pumpAndSettle();
+
+        expect(_maxScale(tester), 1);
+      });
+
+      testWidgets('el color pasa de gris a oscuro de forma gradual', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
+        final grey = CascaColors.light.textSecondary;
+        final target = CascaColors.light.text;
+
+        await tester.tap(_inBar('Caja'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        final midway = tester.widget<Text>(_inBar('Caja')).style?.color;
+        expect(midway, isNot(grey));
+        expect(midway, isNot(target));
+
+        await tester.pumpAndSettle();
+
+        expect(tester.widget<Text>(_inBar('Caja')).style?.color, target);
+      });
+
+      testWidgets('con animaciones reducidas no hay rebote ni degradado', (
+        tester,
+      ) async {
+        tester.platformDispatcher.accessibilityFeaturesTestValue =
+            const FakeAccessibilityFeatures(disableAnimations: true);
+        addTearDown(
+          tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+        );
+        await _openApp(tester, size: _phone);
+
+        await tester.tap(_inBar('Ventas'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 80));
+
+        expect(_maxScale(tester), 1);
+        expect(
+          tester.widget<Text>(_inBar('Ventas')).style?.color,
+          CascaColors.light.text,
+        );
+      });
+
+      testWidgets('el círculo de Vender se distingue cuando está activo', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
+        final colors = CascaColors.light;
+        expect(_circleRing(tester), colors.surface);
+
+        await _tap(tester, _inBar('Vender'));
+
+        expect(_circleRing(tester), isNot(colors.surface));
+        expect(_circleHasGlow(tester), isTrue);
+
+        await _tap(tester, _inBar('Caja'));
+
+        expect(_circleRing(tester), colors.surface);
+        expect(_circleHasGlow(tester), isFalse);
+      });
+
+      testWidgets('la etiqueta activa va en negrita', (tester) async {
+        await _openApp(tester, size: _phone);
+
+        FontWeight? weight(String label) =>
+            tester.widget<Text>(_inBar(label)).style?.fontWeight;
+
+        expect(weight('Inicio'), FontWeight.w600);
+        expect(weight('Caja'), FontWeight.w500);
+
+        await _tap(tester, _inBar('Caja'));
+
+        expect(weight('Caja'), FontWeight.w600);
+        expect(weight('Inicio'), FontWeight.w500);
+      });
+      testWidgets('al tocar un acceso navega a su pantalla', (tester) async {
+        await _openApp(tester, size: _phone);
+
+        await _tap(tester, _inBar('Ventas'));
+
+        expect(inPage('Ventas realizadas'), findsOneWidget);
+      });
+
+      testWidgets('la joroba también es tocable y lleva a Vender', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
+        final top = tester.getTopLeft(find.byType(MobileBottomBar)).dy;
+
+        await tester.tapAt(Offset(200, top + 6));
+        await tester.pumpAndSettle();
+
+        expect(inPage('Vender'), findsOneWidget);
+        expect(_isTabActive(tester, 'Vender'), isTrue);
+      });
+
+      testWidgets('Productos sigue activo en sus subrutas', (tester) async {
+        await _openApp(tester, size: _phone);
+        await _openDrawer(tester);
+        await _tap(tester, _inSidebar('Productos'));
+        await _tap(tester, _inSidebar('Categorías de productos'));
+
+        expect(_isTabActive(tester, 'Productos'), isTrue);
+      });
+
+      testWidgets('en escritorio no hay barra inferior', (tester) async {
+        await _openApp(tester);
+
+        expect(find.byType(MobileBottomBar), findsNothing);
+      });
     });
 
-    testWidgets('en escritorio la barra no muestra el título', (tester) async {
-      await _openApp(tester);
-      await _tap(tester, _inSidebar('Clientes'));
-
-      expect(inTopbar('Clientes'), findsNothing);
-    });
-
-    testWidgets('deslizar desde el borde izquierdo abre el menú', (
+    testWidgets('la barra superior muestra el logo y Casca Tiendas', (
       tester,
     ) async {
       await _openApp(tester, size: _phone);
-      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
 
-      await tester.dragFrom(const Offset(4, 400), const Offset(200, 0));
-      await tester.pumpAndSettle();
-
+      expect(inTopbar('Casca'), findsOneWidget);
+      expect(inTopbar('Tiendas'), findsOneWidget);
       expect(
-        tester.getTopLeft(_inSidebar('Vender')).dx,
-        greaterThanOrEqualTo(0),
+        find.descendant(
+          of: find.byType(Topbar),
+          matching: find.byType(BrandMark),
+        ),
+        findsOneWidget,
       );
     });
 
-    testWidgets('deslizar desde otro punto no abre el menú', (tester) async {
-      await _openApp(tester, size: _phone);
-
-      await tester.dragFrom(const Offset(200, 400), const Offset(150, 0));
-      await tester.pumpAndSettle();
-
-      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
-    });
-
-    testWidgets('deslizar el menú hacia la izquierda lo cierra', (
+    testWidgets('la marca se queda igual al cambiar de pantalla', (
       tester,
     ) async {
       await _openApp(tester, size: _phone);
-      await _tap(tester, find.byType(TopbarIconButton).first);
 
-      await tester.fling(find.byType(Sidebar), const Offset(-200, 0), 1000);
-      await tester.pumpAndSettle();
+      await _tap(tester, _inBar('Productos'));
 
-      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
+      expect(inTopbar('Casca'), findsOneWidget);
+      expect(inPage('Lista de productos'), findsOneWidget);
+    });
+
+    testWidgets('en una pantalla angosta la marca no se desborda', (
+      tester,
+    ) async {
+      await _openApp(tester, size: const Size(320, 640));
+
+      expect(tester.takeException(), isNull);
+      expect(inTopbar('Casca'), findsOneWidget);
+      expect(inTopbar('Tiendas'), findsNothing);
+    });
+
+    testWidgets('en escritorio la marca solo está en el menú lateral', (
+      tester,
+    ) async {
+      await _openApp(tester);
+
+      expect(
+        find.descendant(
+          of: find.byType(Topbar),
+          matching: find.byType(BrandLockup),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(Sidebar),
+          matching: find.byType(BrandLockup),
+        ),
+        findsOneWidget,
+      );
     });
 
     group('márgenes del sistema', () {
@@ -429,25 +758,28 @@ void main() {
           tester.getTopLeft(find.byType(TopbarIconButton).first).dy,
           greaterThanOrEqualTo(status),
         );
-        expect(
-          tester.getTopLeft(find.text('Inicio').first).dy,
-          greaterThanOrEqualTo(status),
-        );
       });
 
-      testWidgets('el contenido termina sobre la barra de navegación', (
+      testWidgets('la barra inferior respeta la barra de navegación', (
         tester,
       ) async {
         await _openApp(tester, size: _phone, padding: padding);
 
+        final bar = tester.getRect(find.byType(MobileBottomBar));
         final page = tester.getRect(find.byKey(const Key('home-page')));
 
-        expect(page.bottom, lessThanOrEqualTo(800 - navigation));
+        expect(bar.bottom, 800);
+        expect(bar.height, 64 + 1 + navigation + mobileBottomBarHump);
+        expect(
+          tester.getBottomLeft(_inBar('Vender')).dy,
+          lessThanOrEqualTo(800 - navigation),
+        );
+        expect(page.bottom, lessThanOrEqualTo(800 - (64 + 1 + navigation)));
       });
 
-      testWidgets('el menú abierto respeta ambos márgenes', (tester) async {
+      testWidgets('el menú lateral respeta ambos márgenes', (tester) async {
         await _openApp(tester, size: _phone, padding: padding);
-        await _tap(tester, find.byType(TopbarIconButton).first);
+        await _openDrawer(tester);
 
         expect(tester.getTopLeft(find.byType(Sidebar)).dy, 64 + status);
         expect(
@@ -462,20 +794,11 @@ void main() {
         expect(tester.getSize(find.byType(Topbar)).height, 64);
       });
     });
-    testWidgets('Escape cierra el menú', (tester) async {
-      await _openApp(tester, size: _phone);
-      await _tap(tester, find.byType(TopbarIconButton).first);
-
-      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-      await tester.pumpAndSettle();
-
-      expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
-    });
 
     group('preferencias', () {
       Future<void> openHub(WidgetTester tester) async {
         await _openApp(tester, size: _phone);
-        await _tap(tester, find.byType(TopbarIconButton).first);
+        await _openDrawer(tester);
         await _tap(tester, _inSidebar('Preferencias'));
       }
 
@@ -497,7 +820,7 @@ void main() {
         ]) {
           expect(find.text(label), findsOneWidget, reason: label);
         }
-        expect(tester.getTopLeft(_inSidebar('Vender')).dx, lessThan(0));
+        expect(_isDrawerOpen(tester), isFalse);
       });
 
       testWidgets('la lista oculta las opciones sin permiso', (tester) async {
@@ -506,7 +829,7 @@ void main() {
           size: _phone,
           session: fullAccessSession(permissions: ['store.view']),
         );
-        await _tap(tester, find.byType(TopbarIconButton).first);
+        await _openDrawer(tester);
         await _tap(tester, _inSidebar('Preferencias'));
 
         expect(find.text('Sucursales'), findsOneWidget);
@@ -522,7 +845,7 @@ void main() {
         await _tap(tester, find.text('Apariencia'));
 
         expect(find.byKey(const Key('preferences-hub')), findsNothing);
-        expect(find.text('Apariencia'), findsNWidgets(2));
+        expect(find.text('Apariencia'), findsOneWidget);
         expect(_inBackBar(), findsOneWidget);
         expect(find.text('PREFERENCIAS'), findsNothing);
       });

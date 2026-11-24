@@ -9,6 +9,7 @@ class NavigationItem {
     this.anyPermission,
     this.section,
     this.children,
+    this.matchPrefixes,
   });
 
   final String id;
@@ -20,6 +21,7 @@ class NavigationItem {
   final List<String>? anyPermission;
   final String? section;
   final List<NavigationItem>? children;
+  final List<String>? matchPrefixes;
 
   bool get hasChildren => children != null && children!.isNotEmpty;
 
@@ -34,6 +36,7 @@ class NavigationItem {
       anyPermission: anyPermission,
       section: section,
       children: children ?? this.children,
+      matchPrefixes: matchPrefixes,
     );
   }
 }
@@ -48,4 +51,13 @@ class NavigationSection {
 bool isRouteActive(String location, String route, {bool exact = false}) {
   if (location == route) return true;
   return !exact && location.startsWith('$route/');
+}
+
+bool isItemActive(String location, NavigationItem item) {
+  final prefixes = item.matchPrefixes;
+  if (prefixes != null) {
+    return prefixes.any((prefix) => isRouteActive(location, prefix));
+  }
+  final route = item.route;
+  return route != null && isRouteActive(location, route);
 }

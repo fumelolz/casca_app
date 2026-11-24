@@ -3,6 +3,7 @@ import 'package:casca_app/app/theme/casca_shadows.dart';
 import 'package:casca_app/app/theme/casca_spacing.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/app/theme/casca_typography.dart';
+import 'package:casca_app/core/layout/brand_lockup.dart';
 import 'package:casca_app/core/layout/navigation_item.dart';
 import 'package:casca_app/core/layout/navigation_provider.dart';
 import 'package:casca_app/core/layout/sidebar_controller.dart';
@@ -19,7 +20,8 @@ const double sidebarCompactWidth = 64;
 const double topbarHeight = 64;
 
 const double _itemHeight = CascaSpacing.space8;
-const double _subItemHeight = 36;
+const double _subItemHeight = 38;
+const double _subGap = 4;
 const double _compactItemSize = CascaSpacing.space8;
 const double _expandedIconBox = 20;
 const double _expandedIconSize = 20;
@@ -224,14 +226,17 @@ class _SidebarState extends ConsumerState<Sidebar> {
           alignment: Alignment.topCenter,
           child: expanded
               ? Padding(
-                  padding: const EdgeInsets.only(left: _submenuIndent, top: 2),
+                  padding: const EdgeInsets.only(
+                    left: _submenuIndent,
+                    top: _subGap,
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.only(left: _treeGap),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         for (var i = 0; i < item.children!.length; i++) ...[
-                          if (i > 0) const SizedBox(height: 2),
+                          if (i > 0) const SizedBox(height: _subGap),
                           _buildSubItem(
                             item.children![i],
                             last: i == item.children!.length - 1,
@@ -324,28 +329,9 @@ class _Brand extends StatelessWidget {
 
   final bool compact;
 
-  static const double _markSize = 36;
-
   @override
   Widget build(BuildContext context) {
     final colors = context.casca;
-    final textTheme = Theme.of(context).textTheme;
-
-    final mark = Container(
-      width: _markSize,
-      height: _markSize,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: colors.primary,
-        borderRadius: CascaRadius.md,
-        boxShadow: CascaShadows.sm,
-      ),
-      child: CascaIcon(
-        CascaIcons.brandBag,
-        size: CascaFontSize.md,
-        color: colors.onPrimary,
-      ),
-    );
 
     return Container(
       height: topbarHeight,
@@ -356,41 +342,8 @@ class _Brand extends StatelessWidget {
         border: Border(bottom: BorderSide(color: colors.border)),
       ),
       child: compact
-          ? Center(child: mark)
-          : Row(
-              children: [
-                mark,
-                const SizedBox(width: CascaSpacing.space3),
-                Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        'Casca',
-                        maxLines: 1,
-                        style: textTheme.titleLarge?.copyWith(
-                          color: colors.text,
-                        ),
-                      ),
-                      const SizedBox(width: CascaSpacing.space1),
-                      Flexible(
-                        child: Text(
-                          'Tiendas',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colors.textMuted,
-                            fontSize: CascaFontSize.sm,
-                            fontWeight: CascaFontWeight.medium,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          ? const Center(child: BrandMark())
+          : const Align(alignment: Alignment.centerLeft, child: BrandLockup()),
     );
   }
 }
@@ -438,32 +391,28 @@ class _SidebarTileState extends State<_SidebarTile> {
 
     Color? background;
     if (active) {
-      background = _hovered ? colors.primaryHover : colors.primary;
+      background = colors.text.withValues(alpha: _hovered ? 0.14 : 0.1);
     } else if (widget.compact && widget.open) {
-      background = colors.primary.withValues(alpha: 0.2);
+      background = colors.text.withValues(alpha: 0.12);
     } else if (widget.compact && widget.parentActive) {
-      background = colors.primary.withValues(alpha: 0.14);
-    } else if (_hovered || raised) {
+      background = colors.text.withValues(alpha: 0.08);
+    } else if (_hovered || widget.open) {
       background = colors.surfaceHover;
     }
 
     final Color textColor;
-    if (active) {
-      textColor = colors.onPrimary;
-    } else if (_hovered || raised || widget.parentActive) {
+    if (active || _hovered || raised || widget.parentActive) {
       textColor = colors.text;
     } else {
       textColor = colors.textSecondary;
     }
 
-    final iconColor = widget.parentActive && !active
-        ? colors.primary
-        : textColor;
+    final iconColor = textColor;
     final bold = active || widget.parentActive;
     final icon = widget.icon;
     final compact = widget.compact;
 
-    final content = compact
+    Widget buildContent(Color textColor, Color iconColor) => compact
         ? Center(
             child: CascaIcon(
               icon!,
@@ -507,8 +456,12 @@ class _SidebarTileState extends State<_SidebarTile> {
             ],
           );
 
+    final colorDuration = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : const Duration(milliseconds: 200);
+
     Widget tile = AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
+      duration: colorDuration,
       width: compact ? _compactItemSize : null,
       constraints: BoxConstraints(
         minHeight: compact ? _compactItemSize : widget.height,
@@ -520,9 +473,19 @@ class _SidebarTileState extends State<_SidebarTile> {
       decoration: BoxDecoration(
         color: background,
         borderRadius: CascaRadius.sm,
-        boxShadow: active ? CascaShadows.sm : null,
       ),
-      child: content,
+      child: TweenAnimationBuilder<Color?>(
+        tween: ColorTween(end: textColor),
+        duration: colorDuration,
+        builder: (context, animatedText, _) => TweenAnimationBuilder<Color?>(
+          tween: ColorTween(end: iconColor),
+          duration: colorDuration,
+          builder: (context, animatedIcon, _) => buildContent(
+            animatedText ?? textColor,
+            animatedIcon ?? iconColor,
+          ),
+        ),
+      ),
     );
 
     tile = MouseRegion(
@@ -636,12 +599,11 @@ class _FlyoutLinkState extends State<_FlyoutLink> {
     final colors = context.casca;
     final textTheme = Theme.of(context).textTheme;
     final active = widget.active;
-
     final background = active
-        ? (_hovered ? colors.primaryHover : colors.primary)
+        ? colors.text.withValues(alpha: _hovered ? 0.14 : 0.1)
         : (_hovered ? colors.surfaceHover : null);
-    final textColor = active ? colors.onPrimary : colors.text;
-    final iconColor = active ? colors.onPrimary : colors.textSecondary;
+    final textColor = colors.text;
+    final iconColor = active ? colors.text : colors.textSecondary;
 
     return Semantics(
       button: true,
@@ -717,10 +679,14 @@ class _TreePainter extends CustomPainter {
     const x = -_treeGap + 0.5;
     final middle = size.height / 2;
 
-    canvas.drawLine(const Offset(x, -2), Offset(x, middle), paint);
+    canvas.drawLine(const Offset(x, -_subGap), Offset(x, middle), paint);
     canvas.drawLine(Offset(x, middle), Offset(0, middle), paint);
     if (!last) {
-      canvas.drawLine(Offset(x, middle), Offset(x, size.height + 2), paint);
+      canvas.drawLine(
+        Offset(x, middle),
+        Offset(x, size.height + _subGap),
+        paint,
+      );
     }
   }
 

@@ -1,5 +1,4 @@
 import 'package:casca_app/core/layout/navigation_item.dart';
-import 'package:casca_app/core/layout/navigation_items.dart';
 import 'package:casca_app/core/layout/navigation_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -114,27 +113,6 @@ void main() {
         isFalse,
       );
       expect(isRouteActive('/products', '/products', exact: true), isTrue);
-    });
-  });
-
-  group('navigationTitleFor', () {
-    test('devuelve la etiqueta del módulo', () {
-      expect(navigationTitleFor('/home'), 'Inicio');
-      expect(navigationTitleFor('/sales'), 'Ventas realizadas');
-    });
-
-    test('una subruta usa el módulo más específico', () {
-      expect(navigationTitleFor('/products'), 'Lista de productos');
-      expect(
-        navigationTitleFor('/products/categories'),
-        'Categorías de productos',
-      );
-      expect(navigationTitleFor('/sales/123'), 'Ventas realizadas');
-    });
-
-    test('la lista de preferencias y las rutas desconocidas', () {
-      expect(navigationTitleFor('/preferences'), 'Preferencias');
-      expect(navigationTitleFor('/desconocida'), 'Casca');
     });
   });
 }

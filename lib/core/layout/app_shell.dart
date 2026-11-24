@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:casca_app/app/theme/casca_theme.dart';
-import 'package:casca_app/core/layout/navigation_items.dart';
+import 'package:casca_app/core/layout/mobile_bottom_bar.dart';
 import 'package:casca_app/core/layout/preferences_nav.dart';
 import 'package:casca_app/core/layout/sidebar.dart';
 import 'package:casca_app/core/layout/sidebar_controller.dart';
@@ -58,7 +58,9 @@ class AppShell extends ConsumerWidget {
   Widget _buildPage({required bool isMobile}) {
     final page = Expanded(
       child: ClipRect(
-        child: isMobile ? SafeArea(top: false, child: child) : child,
+        child: isMobile
+            ? SafeArea(top: false, bottom: false, child: child)
+            : child,
       ),
     );
 
@@ -137,19 +139,26 @@ class AppShell extends ConsumerWidget {
     );
     final open = sidebar.mobileOpen;
     final insets = MediaQuery.paddingOf(context);
+    final barExtent = mobileBottomBarExtent(insets.bottom);
 
     return Stack(
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Topbar(
-              isMobile: true,
-              title: navigationTitleFor(location),
-              insets: insets,
-            ),
+            Topbar(isMobile: true, insets: insets),
             _buildPage(isMobile: true),
+            SizedBox(height: barExtent),
           ],
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: MobileBottomBar(
+            location: location,
+            bottomInset: insets.bottom,
+          ),
         ),
         if (open)
           Positioned(
