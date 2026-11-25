@@ -1,66 +1,18 @@
 import 'package:casca_app/app/theme/casca_spacing.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/core/errors/api_error_message.dart';
-import 'package:casca_app/features/products/data/photo_picker.dart';
 import 'package:casca_app/features/products/presentation/providers/product_photos_provider.dart';
+import 'package:casca_app/features/products/presentation/widgets/photo_source.dart';
 import 'package:casca_app/features/products/presentation/widgets/product_thumbnail.dart';
 import 'package:casca_app/shared/ui/casca_action_menu.dart';
-import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_image_grid.dart';
-import 'package:casca_app/shared/ui/casca_modal.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-
-enum _PhotoSource { camera, gallery }
 
 class ProductPhotosField extends ConsumerWidget {
   const ProductPhotosField({super.key, required this.productId});
 
   final String? productId;
-
-  Future<List<PickedPhoto>> _pick(
-    BuildContext context,
-    WidgetRef ref, {
-    required int limit,
-  }) async {
-    final picker = ref.read(photoPickerProvider);
-    var source = _PhotoSource.gallery;
-
-    if (picker.hasCamera) {
-      final chosen = await showCascaModal<_PhotoSource>(
-        context: context,
-        size: CascaModalSize.sm,
-        builder: (modalContext) => CascaModal(
-          title: 'Agregar foto',
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              CascaButton(
-                label: 'Tomar foto',
-                fullWidth: true,
-                onPressed: () =>
-                    Navigator.of(modalContext).pop(_PhotoSource.camera),
-              ),
-              const SizedBox(height: CascaSpacing.space3),
-              CascaButton(
-                label: 'Elegir de la galería',
-                variant: CascaButtonVariant.secondary,
-                fullWidth: true,
-                onPressed: () =>
-                    Navigator.of(modalContext).pop(_PhotoSource.gallery),
-              ),
-            ],
-          ),
-        ),
-      );
-      if (chosen == null) return const [];
-      source = chosen;
-    }
-
-    if (source == _PhotoSource.camera) return [?await picker.takePhoto()];
-    return picker.pickFromGallery(limit: limit);
-  }
 
   Future<void> _choose(
     BuildContext context,
@@ -70,7 +22,7 @@ class ProductPhotosField extends ConsumerWidget {
     final provider = productPhotosProvider(productId);
     final controller = ref.read(provider.notifier);
     try {
-      final photos = await _pick(
+      final photos = await pickPhotos(
         context,
         ref,
         limit: replacing != null ? 1 : ref.read(provider).freeSlots,

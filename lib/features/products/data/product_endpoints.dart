@@ -11,4 +11,33 @@ abstract final class ProductEndpoints {
 
   static String galleryImage(String productId, String imageId) =>
       '${gallery(productId)}/$imageId';
+
+  static String variants(String productId) => '${byId(productId)}/variants';
+
+  static String variant(String productId, String variantId) =>
+      '${variants(productId)}/$variantId';
+
+  static String variantPrices(String productId) =>
+      '${variants(productId)}/prices';
+
+  static String variantStatus(String productId, String variantId) =>
+      '${variant(productId, variantId)}/status';
+
+  static String variantImage(String productId, String variantId) =>
+      '${variant(productId, variantId)}/image';
+
+  static String variantSaleUnit(
+    String productId,
+    String variantId,
+    String saleUnitId,
+  ) => '${variant(productId, variantId)}/sale-units/$saleUnitId';
+
+  static String optionOrder(String productId) =>
+      '${byId(productId)}/options/order';
+
+  static String optionValues(String productId) =>
+      '${byId(productId)}/option-values';
+
+  static String variantLimits(String productId, String variantId) =>
+      '/api/v1/inventories/$productId/variants/$variantId/limits';
 }

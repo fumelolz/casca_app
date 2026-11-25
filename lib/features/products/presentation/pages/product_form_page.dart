@@ -10,6 +10,10 @@ import 'package:casca_app/features/products/data/models/category_model.dart';
 import 'package:casca_app/features/products/data/models/product_detail_model.dart';
 import 'package:casca_app/features/products/domain/product_form_rules.dart';
 import 'package:casca_app/features/products/domain/product_list_rules.dart';
+import 'package:casca_app/features/products/domain/product_variant_rules.dart';
+import 'package:casca_app/features/products/presentation/providers/product_variants_provider.dart';
+import 'package:casca_app/features/products/presentation/widgets/product_variants_manager.dart';
+import 'package:casca_app/features/products/presentation/widgets/product_variants_section.dart';
 import 'package:casca_app/features/products/presentation/providers/product_form_provider.dart';
 import 'package:casca_app/features/products/presentation/providers/product_photos_provider.dart';
 import 'package:casca_app/features/products/presentation/widgets/product_form_fields.dart';
@@ -54,7 +58,7 @@ class ProductFormPage extends ConsumerWidget {
     final detail = ref.watch(productDetailProvider(id));
     final product = detail.value;
     if (product != null) {
-      return _ProductForm(key: ValueKey(product.version), current: product);
+      return _ProductForm(key: ValueKey(product.id), current: product);
     }
 
     final error = detail.error;
@@ -139,6 +143,19 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
   late final UnsavedChanges _unsavedChanges;
   late final List<Object?> _initialValues;
   bool _saved = false;
+  String? _variantError;
+
+  List<ProductVariantDraft> _variantsToCreate() {
+    if (_isEdit || _isService) return const [];
+    return ref.read(productVariantsProvider).variants;
+  }
+
+  String? _checkVariants() {
+    if (_isEdit || _isService) return null;
+    final state = ref.read(productVariantsProvider);
+    if (state.isEditing) return 'Termina de editar la opción de variantes.';
+    return missingVariantCostMessage(state.variants);
+  }
 
   @override
   void initState() {
@@ -170,7 +187,9 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
   bool _hasUnsavedChanges() {
     if (_saved || _createdId != null) return false;
     if (!listEquals(_initialValues, _currentValues())) return true;
-    return !_isEdit && ref.read(productPhotosProvider(null)).main != null;
+    if (_isEdit) return false;
+    return ref.read(productPhotosProvider(null)).main != null ||
+        ref.read(productVariantsProvider).hasChanges;
   }
 
   @override
@@ -196,9 +215,13 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
     if (createdId != null) return _uploadPhotos(createdId);
 
     final categoryId = _categoryId;
-    setState(() => _categoryMissing = categoryId == null);
+    final variantError = _checkVariants();
+    setState(() {
+      _categoryMissing = categoryId == null;
+      _variantError = variantError;
+    });
     final valid = _formKey.currentState!.validate();
-    if (!valid || categoryId == null) return;
+    if (!valid || categoryId == null || variantError != null) return;
 
     final current = _current;
     final values = ProductFormValues(
@@ -222,6 +245,7 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
       initialStock: parseAmount(_initialStock.text) ?? 0,
       minimumStock: parseAmount(_minimumStock.text) ?? 0,
       maximumStock: parseAmount(_maximumStock.text),
+      variants: _variantsToCreate(),
     );
     final savedId = await ref
         .read(productFormControllerProvider.notifier)
@@ -334,16 +358,6 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
 
   Widget _priceCard() {
     final textTheme = Theme.of(context).textTheme;
-    if (_hasVariants) {
-      return CascaCard(
-        title: 'Precio',
-        child: Text(
-          'Este producto tiene variantes. Sus precios se administran desde la versión web.',
-          style: textTheme.bodyMedium,
-        ),
-      );
-    }
-
     return CascaCard(
       title: 'Precio',
       child: _FieldColumn([
@@ -467,16 +481,29 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
     final saving = saveState.isLoading || (!_isEdit && uploading);
     final error = saveState.error;
     final photosPending = _createdId != null && !saving;
-    final showInventory = !_isService && !_hasVariants;
+    final showVariants = !_isEdit && !_isService;
+    var usesVariants = false;
+    if (!_isEdit) {
+      final hasDraftVariants = ref.watch(
+        productVariantsProvider.select((state) => state.variants.isNotEmpty),
+      );
+      usesVariants = showVariants && hasDraftVariants;
+      ref.listen(productVariantsProvider, (_, _) {
+        if (_variantError != null) setState(() => _variantError = null);
+      });
+    }
+    final showInventory = !_isService && !_hasVariants && !usesVariants;
 
     final information = _informationCard(
       categories.value ?? const [],
       categories.hasError,
     );
-    final price = _priceCard();
+    final price = usesVariants || _hasVariants ? null : _priceCard();
+    final managedId = _isService ? null : _current?.id;
     final inventory = showInventory ? _inventoryCard() : null;
 
     final messages = [
+      ?_variantError,
       if (photosPending)
         'El producto se guardó, pero algunas fotos no se subieron.',
       if (error != null)
@@ -509,7 +536,14 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
                         ),
                       ),
                       const SizedBox(height: CascaSpacing.space5),
-                      _CardColumn([information, price, ?inventory]),
+                      _CardColumn([
+                        information,
+                        ?price,
+                        ?inventory,
+                        if (showVariants) const ProductVariantsSection(),
+                        if (managedId != null)
+                          ProductVariantsManager(productId: managedId),
+                      ]),
                     ],
                   ),
                 ),

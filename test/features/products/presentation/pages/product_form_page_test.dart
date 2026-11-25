@@ -49,6 +49,43 @@ Map<String, dynamic> _galleryImage(String id, int order) => {
   'sortOrder': order,
 };
 
+Map<String, dynamic> _variant(
+  String id,
+  String size,
+  int position, {
+  required double price,
+  int status = 1,
+}) => {
+  'id': id,
+  'sku': 'SKU-$size',
+  'displayName': size,
+  'status': status,
+  'minimumStock': 1,
+  'maximumStock': null,
+  'stock': 4,
+  'options': [
+    {
+      'name': 'Talla',
+      'value': size,
+      'optionPosition': 0,
+      'valuePosition': position,
+    },
+  ],
+  'saleUnits': [
+    {
+      'id': 'u-$id',
+      'displayName': 'Pieza',
+      'unitOfMeasure': 0,
+      'conversionFactor': 1,
+      'price': price,
+      'affectsInventory': true,
+      'allowsDecimalQuantity': false,
+      'isInventoryBaseUnit': true,
+      'barcode': null,
+    },
+  ],
+};
+
 Map<String, dynamic> _detail({int productType = 0, bool variants = false}) => {
   'id': 'p1',
   'name': 'Arroz',
@@ -69,9 +106,7 @@ Map<String, dynamic> _detail({int productType = 0, bool variants = false}) => {
   'stock': 20,
   'image': {'webpThumbnailUrl': '/images/main.webp'},
   'variants': variants
-      ? [
-          {'id': 'v1'},
-        ]
+      ? [_variant('v1', 'CH', 0, price: 10), _variant('v2', 'M', 1, price: 12)]
       : <Object>[],
   'saleUnits': [
     {
@@ -357,6 +392,299 @@ void main() {
       expect(picker.limits.single, 7);
       expect(find.byType(CascaActionMenu), findsNWidgets(7));
       expect(find.text('Agregar imagen'), findsNothing);
+    });
+  });
+
+  group('variantes', () {
+    Finder valueInputs() => find.descendant(
+      of: find.widgetWithText(ProductField, 'Valores de la opción'),
+      matching: find.byType(TextField),
+    );
+
+    Future<void> addOption(
+      WidgetTester tester,
+      String button,
+      String name,
+      List<String> values,
+    ) async {
+      await tester.ensureVisible(find.text(button));
+      await _tapText(tester, button);
+      await _fill(tester, 'Nombre de la opción', name);
+      for (final value in values) {
+        await tester.enterText(valueInputs().last, value);
+        await tester.pump();
+      }
+      await tester.ensureVisible(find.text('Listo'));
+      await _tapText(tester, 'Listo');
+    }
+
+    Finder cell(String key) => find.descendant(
+      of: find.byKey(Key(key)),
+      matching: find.byType(TextField),
+    );
+
+    Future<void> type(WidgetTester tester, String key, String text) async {
+      await tester.ensureVisible(cell(key));
+      await tester.enterText(cell(key), text);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('al agregar opciones oculta el precio e inventario', (
+      tester,
+    ) async {
+      await _pump(tester, _Server());
+
+      await addOption(tester, 'Añadir opciones', 'Talla', ['CH', 'M']);
+
+      expect(find.text('Precio'), findsOneWidget);
+      expect(find.text('Inventario'), findsNothing);
+      expect(find.text('Venta'), findsNothing);
+      expect(find.byKey(const Key('variant-price-CH')), findsOneWidget);
+      expect(find.byKey(const Key('variant-price-M')), findsOneWidget);
+    });
+
+    testWidgets('envía las variantes sin unidades del producto', (
+      tester,
+    ) async {
+      final server = _Server();
+      await _pump(tester, server);
+      await _fill(tester, 'Nombre', 'Playera');
+      await _tapText(tester, 'Selecciona una categoría');
+      await _tapText(tester, 'Abarrotes › Latas');
+      await addOption(tester, 'Añadir opciones', 'Talla', ['CH', 'M']);
+      await type(tester, 'variant-price-CH', '100');
+      await type(tester, 'variant-cost-CH', '60');
+      await type(tester, 'variant-stock-CH', '3');
+
+      await _tapText(tester, 'Guardar');
+
+      final body = server.sent('POST').single.data as Map<String, dynamic>;
+      expect(body['saleUnits'], isEmpty);
+      expect(body['hasInitialStock'], isFalse);
+      final variants = body['variants'] as List;
+      expect(variants, hasLength(2));
+      expect(variants.first, containsPair('displayName', 'CH'));
+      expect(variants.first, containsPair('status', 1));
+      expect(variants.first, containsPair('initialStock', 3));
+      expect(variants.first, containsPair('unitCost', 60));
+      expect(
+        ((variants.first as Map)['saleUnits'] as List).single,
+        containsPair('price', 100),
+      );
+    });
+
+    testWidgets('el precio del grupo se aplica a sus variantes', (
+      tester,
+    ) async {
+      await _pump(tester, _Server());
+      await addOption(tester, 'Añadir opciones', 'Talla', ['CH', 'M']);
+      await addOption(tester, 'Agregar opción', 'Color', ['Rojo', 'Azul']);
+
+      await type(tester, 'group-price-CH', '80');
+      await tester.ensureVisible(find.text('CH').last);
+      await tester.tap(find.bySemanticsLabel('CH, 2 variantes'));
+      await tester.pumpAndSettle();
+
+      for (final key in ['variant-price-CH|Rojo', 'variant-price-CH|Azul']) {
+        expect(tester.widget<TextField>(cell(key)).controller!.text, '80');
+      }
+    });
+
+    testWidgets('no guarda si falta el costo de una variante', (tester) async {
+      final server = _Server();
+      await _pump(tester, server);
+      await _fill(tester, 'Nombre', 'Playera');
+      await _tapText(tester, 'Selecciona una categoría');
+      await _tapText(tester, 'Abarrotes › Latas');
+      await addOption(tester, 'Añadir opciones', 'Talla', ['CH']);
+      await type(tester, 'variant-stock-CH', '3');
+
+      await _tapText(tester, 'Guardar');
+
+      expect(
+        find.textContaining('Indica el costo de las variantes'),
+        findsOneWidget,
+      );
+      expect(server.sent('POST'), isEmpty);
+    });
+
+    testWidgets('un servicio no tiene variantes', (tester) async {
+      await _pump(tester, _Server());
+
+      await _tapText(tester, 'Servicio');
+
+      expect(find.text('Variantes'), findsNothing);
+    });
+
+    testWidgets('en teléfono las variantes no desbordan', (tester) async {
+      await _pump(tester, _Server(), width: 360);
+
+      await addOption(tester, 'Añadir opciones', 'Talla', ['Extra grande']);
+      await addOption(tester, 'Agregar opción', 'Color', ['Rojo']);
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('administrar variantes', () {
+    Future<_Server> open(WidgetTester tester, {double width = 1200}) async {
+      final server = _Server()
+        ..detail = _detail(variants: true)
+        ..saveStatus = 200;
+      await _pump(tester, server, productId: 'p1', width: width);
+      return server;
+    }
+
+    Future<void> tapVisible(WidgetTester tester, Finder finder) async {
+      await tester.ensureVisible(finder);
+      await tester.tap(finder);
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> rowAction(WidgetTester tester, String name, String action) {
+      return tapVisible(
+        tester,
+        find.bySemanticsLabel('Acciones de $name'),
+      ).then((_) => _tapText(tester, action));
+    }
+
+    Map<String, dynamic> body(RequestOptions request) =>
+        request.data as Map<String, dynamic>;
+
+    testWidgets('lista las variantes y oculta el precio del producto', (
+      tester,
+    ) async {
+      await open(tester);
+
+      expect(find.text('SKU-CH'), findsOneWidget);
+      expect(find.text(r'$12.00'), findsOneWidget);
+      expect(find.text('Venta'), findsNothing);
+      expect(find.text('Ordenar'), findsOneWidget);
+    });
+
+    testWidgets('desactiva una variante', (tester) async {
+      final server = await open(tester);
+
+      await rowAction(tester, 'CH', 'Desactivar');
+
+      final put = server.sent('PUT').single;
+      expect(put.path, ProductEndpoints.variantStatus('p1', 'v1'));
+      expect(body(put), {'isActive': false, 'version': 3});
+    });
+
+    testWidgets('cambia el precio de las seleccionadas', (tester) async {
+      final server = await open(tester);
+      await tapVisible(
+        tester,
+        find.bySemanticsLabel('Seleccionar todas las variantes'),
+      );
+      await tapVisible(tester, find.text('Cambiar precio'));
+      await _fill(tester, 'Nuevo precio', '25');
+
+      await _tapText(tester, 'Aplicar');
+
+      final put = server.sent('PUT').single;
+      expect(put.path, ProductEndpoints.variantPrices('p1'));
+      expect(body(put)['variantIds'], ['v1', 'v2']);
+      expect(body(put)['price'], 25);
+      expect(body(put)['percentage'], isNull);
+      expect(find.text('Aplicar'), findsNothing);
+    });
+
+    testWidgets('al editar solo envía lo que cambió', (tester) async {
+      final server = await open(tester);
+      await rowAction(tester, 'CH', 'Editar');
+      await _fill(tester, 'Precio de venta', '99');
+
+      await _tapText(tester, 'Guardar cambios');
+
+      final put = server.sent('PUT').single;
+      expect(put.path, ProductEndpoints.variantSaleUnit('p1', 'v1', 'u-v1'));
+      expect(body(put)['price'], 99);
+      expect(body(put)['version'], 3);
+    });
+
+    testWidgets('renombra el valor y avanza la versión', (tester) async {
+      final server = await open(tester);
+      await rowAction(tester, 'CH', 'Editar');
+      await _fill(tester, 'Talla', 'Chica');
+      await _fill(tester, 'Precio de venta', '11');
+
+      await _tapText(tester, 'Guardar cambios');
+
+      final puts = server.sent('PUT').toList();
+      expect(puts.first.path, ProductEndpoints.optionValues('p1'));
+      expect(body(puts.first), {
+        'optionName': 'Talla',
+        'currentValue': 'CH',
+        'newValue': 'Chica',
+        'version': 3,
+      });
+      expect(body(puts.last)['version'], 4);
+    });
+
+    testWidgets('agrega una variante con un valor nuevo', (tester) async {
+      final server = await open(tester);
+      await tapVisible(tester, find.text('Agregar variante'));
+      await _tapText(tester, 'Selecciona un valor');
+      await _tapText(tester, 'Nuevo valor…');
+      await _fill(tester, 'Nuevo valor de Talla', 'G');
+      await _fill(tester, 'Precio de venta', '15');
+
+      await _tapText(tester, 'Agregar');
+
+      final post = server.sent('POST').single;
+      expect(post.path, ProductEndpoints.variants('p1'));
+      expect(body(post)['version'], 3);
+      final added = (body(post)['variants'] as List).single as Map;
+      expect(added['displayName'], 'G');
+    });
+
+    testWidgets('no agrega una combinación que ya existe', (tester) async {
+      final server = await open(tester);
+      await tapVisible(tester, find.text('Agregar variante'));
+      await _tapText(tester, 'Selecciona un valor');
+      await tester.tap(find.text('M').last);
+      await tester.pumpAndSettle();
+      await _fill(tester, 'Precio de venta', '15');
+
+      await _tapText(tester, 'Agregar');
+
+      expect(
+        find.text('Ya existe una variante con esa combinación.'),
+        findsOneWidget,
+      );
+      expect(server.sent('POST'), isEmpty);
+    });
+
+    testWidgets('guarda el nuevo orden de los valores', (tester) async {
+      final server = await open(tester);
+      await tapVisible(tester, find.text('Ordenar'));
+      await tapVisible(tester, find.bySemanticsLabel('Bajar CH'));
+
+      await _tapText(tester, 'Guardar orden');
+
+      expect(body(server.sent('PUT').single)['options'], [
+        {
+          'name': 'Talla',
+          'values': ['M', 'CH'],
+        },
+      ]);
+    });
+
+    testWidgets('si el servidor rechaza muestra el motivo', (tester) async {
+      final server = await open(tester);
+      server.saveStatus = 409;
+
+      await rowAction(tester, 'CH', 'Desactivar');
+
+      expect(find.text('Ese código ya existe.'), findsOneWidget);
+    });
+
+    testWidgets('en teléfono no desborda', (tester) async {
+      await open(tester, width: 360);
+
+      expect(tester.takeException(), isNull);
     });
   });
 

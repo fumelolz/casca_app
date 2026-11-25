@@ -1,4 +1,5 @@
 import 'package:casca_app/features/products/data/models/product_list_item_model.dart';
+import 'package:casca_app/features/products/data/models/product_variant_model.dart';
 
 class ProductDetailModel {
   const ProductDetailModel({
@@ -9,7 +10,7 @@ class ProductDetailModel {
     required this.ivaRate,
     required this.iepsRate,
     required this.satUnitCode,
-    required this.hasVariants,
+    this.variants = const [],
     this.description,
     this.categoryId,
     this.categoryName,
@@ -53,7 +54,10 @@ class ProductDetailModel {
       maximumStock: number('maximumStock'),
       averageCost: number('averageCost'),
       stock: number('stock'),
-      hasVariants: (json['variants'] as List<dynamic>? ?? const []).isNotEmpty,
+      variants: (json['variants'] as List<dynamic>? ?? const [])
+          .cast<Map<String, dynamic>>()
+          .map(ProductVariantModel.fromJson)
+          .toList(),
       baseUnit: base == null ? null : ProductSaleUnitModel.fromJson(base),
       image: json['image'] == null
           ? null
@@ -78,9 +82,11 @@ class ProductDetailModel {
   final double? maximumStock;
   final double? averageCost;
   final double? stock;
-  final bool hasVariants;
+  final List<ProductVariantModel> variants;
   final ProductSaleUnitModel? baseUnit;
   final ProductImageModel? image;
+
+  bool get hasVariants => variants.isNotEmpty;
 }
 
 class ProductSaleUnitModel {

@@ -19,6 +19,20 @@ class ProductImageRepository {
     );
   }
 
+  Future<void> uploadVariantImage(
+    String productId,
+    String variantId,
+    PickedPhoto photo, {
+    required String altText,
+  }) {
+    final form = _form(photo)..fields.add(MapEntry('altText', altText));
+    return _api.post<void>(
+      ProductEndpoints.variantImage(productId, variantId),
+      body: form,
+      decode: (_) {},
+    );
+  }
+
   Future<List<ProductGalleryImageModel>> getGallery(String productId) {
     return _api.get<List<ProductGalleryImageModel>>(
       ProductEndpoints.gallery(productId),

@@ -1,4 +1,5 @@
 import 'package:casca_app/features/products/data/models/product_detail_model.dart';
+import 'package:casca_app/features/products/domain/product_variant_rules.dart';
 
 enum ProductKind {
   product(0, 'Producto'),
@@ -77,8 +78,10 @@ class ProductFormValues {
     this.initialStock = 0,
     this.minimumStock = 0,
     this.maximumStock,
+    this.variants = const [],
   });
 
+  final List<ProductVariantDraft> variants;
   final ProductKind kind;
   final String name;
   final String categoryId;
@@ -105,9 +108,11 @@ String? _textOrNull(String value) {
 Map<String, dynamic> toCreateProductRequest(ProductFormValues values) {
   final service = values.isService;
   final unit = service ? ProductUnit.piece : values.unit;
+  final variants = service ? const <ProductVariantDraft>[] : values.variants;
+  final ownStock = !service && variants.isEmpty;
 
   return {
-    'hasInitialStock': !service && values.initialStock > 0,
+    'hasInitialStock': ownStock && values.initialStock > 0,
     'brandId': null,
     'customBrandName': null,
     'name': values.name.trim(),
@@ -115,10 +120,10 @@ Map<String, dynamic> toCreateProductRequest(ProductFormValues values) {
     'productType': values.kind.code,
     'categoryId': values.categoryId,
     'productTemplateId': null,
-    'minimumStock': service ? 0 : values.minimumStock,
-    'maximumStock': service ? null : values.maximumStock,
-    'initialStock': service ? 0 : values.initialStock,
-    'unitCost': service ? 0 : values.cost,
+    'minimumStock': ownStock ? values.minimumStock : 0,
+    'maximumStock': ownStock ? values.maximumStock : null,
+    'initialStock': ownStock ? values.initialStock : 0,
+    'unitCost': ownStock ? values.cost : 0,
     'defaultTaxRate': values.iva.code,
     'defaultIepsTaxRate': values.ieps.code,
     'iepsQuantityFactor': values.ieps.needsQuantity
@@ -126,18 +131,19 @@ Map<String, dynamic> toCreateProductRequest(ProductFormValues values) {
         : null,
     'satUnitCode': service ? _serviceSatUnit : _productSatUnit,
     'satProductServiceCode': null,
-    'variants': <Object>[],
+    'variants': [for (final variant in variants) toVariantRequest(variant)],
     'saleUnits': [
-      {
-        'unitOfMeasure': unit.code,
-        'conversionFactor': 1,
-        'price': values.price,
-        'affectsInventory': !service,
-        'allowsDecimalQuantity': !service && unit.allowsDecimals,
-        'isInventoryBaseUnit': true,
-        'barcode': service ? null : _textOrNull(values.barcode),
-        'cost': service ? values.cost : 0,
-      },
+      if (variants.isEmpty)
+        {
+          'unitOfMeasure': unit.code,
+          'conversionFactor': 1,
+          'price': values.price,
+          'affectsInventory': !service,
+          'allowsDecimalQuantity': !service && unit.allowsDecimals,
+          'isInventoryBaseUnit': true,
+          'barcode': service ? null : _textOrNull(values.barcode),
+          'cost': service ? values.cost : 0,
+        },
     ],
   };
 }
