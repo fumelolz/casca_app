@@ -7,6 +7,8 @@ abstract final class AppRoutes {
   static const home = '/home';
   static const businesses = '/businesses';
   static const preferences = '/preferences';
+  static const products = '/products';
+  static const productCategories = '/products/categories';
 
   static const guestRoutes = {login, forgotPassword, setPassword, register};
 

@@ -7,14 +7,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _Call {
-  const _Call(this.search, this.page, this.pageSize);
+  const _Call(this.search, this.page, this.pageSize, this.descending);
 
   final String search;
   final int page;
   final int pageSize;
+  final bool descending;
 }
 
 class _FakeCategoryRepository implements CategoryRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
   final calls = <_Call>[];
   Object? error;
 
@@ -23,8 +27,10 @@ class _FakeCategoryRepository implements CategoryRepository {
     String search = '',
     int page = 1,
     int pageSize = 10,
+    bool descending = false,
+    bool rootOnly = false,
   }) async {
-    calls.add(_Call(search, page, pageSize));
+    calls.add(_Call(search, page, pageSize, descending));
     final failure = error;
     if (failure != null) throw failure;
     return PagedResponse<CategoryModel>(
@@ -102,6 +108,24 @@ void main() {
       expect(repository.calls, hasLength(1));
       expect(repository.calls.single.search, 'lat');
       expect(repository.calls.single.page, 1);
+    },
+  );
+
+  test(
+    'setDescending pide el orden descendente y vuelve a la página 1',
+    () async {
+      final repository = _FakeCategoryRepository();
+      final container = _container(repository);
+      final query = container.read(categoryListQueryProvider.notifier);
+      await container.read(categoryListProvider.future);
+      query.setPage(3);
+      await container.read(categoryListProvider.future);
+
+      query.setDescending(true);
+      await container.read(categoryListProvider.future);
+
+      expect(repository.calls.last.descending, isTrue);
+      expect(repository.calls.last.page, 1);
     },
   );
 

@@ -11,6 +11,8 @@ import 'package:casca_app/features/auth/presentation/pages/login_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/register_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/set_password_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/splash_page.dart';
+import 'package:casca_app/features/products/presentation/pages/category_list_page.dart';
+import 'package:casca_app/features/products/presentation/pages/product_list_page.dart';
 import 'package:casca_app/features/home/presentation/pages/home_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,7 +23,12 @@ class _AuthRefresh extends ChangeNotifier {
 }
 
 final _placeholderRoutes = allNavigationRoutes
-    .where((item) => item.route != AppRoutes.home)
+    .where(
+      (item) =>
+          item.route != AppRoutes.home &&
+          item.route != AppRoutes.products &&
+          item.route != AppRoutes.productCategories,
+    )
     .toList();
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -71,6 +78,16 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.preferences,
             pageBuilder: (context, state) =>
                 shellPage(state, const PreferencesHubPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.productCategories,
+            pageBuilder: (context, state) =>
+                shellPage(state, const CategoryListPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.products,
+            pageBuilder: (context, state) =>
+                shellPage(state, const ProductListPage()),
           ),
           for (final item in _placeholderRoutes)
             GoRoute(

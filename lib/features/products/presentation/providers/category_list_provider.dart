@@ -10,11 +10,22 @@ class CategoryListQuery {
     this.search = '',
     this.page = 1,
     this.pageSize = 10,
+    this.descending = false,
   });
 
   final String search;
   final int page;
   final int pageSize;
+  final bool descending;
+
+  CategoryListQuery copyWith({String? search, int? page, bool? descending}) {
+    return CategoryListQuery(
+      search: search ?? this.search,
+      page: page ?? this.page,
+      pageSize: pageSize,
+      descending: descending ?? this.descending,
+    );
+  }
 }
 
 class CategoryListQueryController extends Notifier<CategoryListQuery> {
@@ -33,17 +44,18 @@ class CategoryListQueryController extends Notifier<CategoryListQuery> {
     _searchTimer = Timer(searchDelay, () {
       final search = value.trim();
       if (search == state.search) return;
-      state = CategoryListQuery(search: search, pageSize: state.pageSize);
+      state = state.copyWith(search: search, page: 1);
     });
   }
 
   void setPage(int page) {
     if (page == state.page) return;
-    state = CategoryListQuery(
-      search: state.search,
-      page: page,
-      pageSize: state.pageSize,
-    );
+    state = state.copyWith(page: page);
+  }
+
+  void setDescending(bool descending) {
+    if (descending == state.descending) return;
+    state = state.copyWith(descending: descending, page: 1);
   }
 }
 
@@ -64,6 +76,7 @@ final categoryListProvider =
               search: query.search,
               page: query.page,
               pageSize: query.pageSize,
+              descending: query.descending,
             );
       },
     );

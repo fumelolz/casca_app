@@ -59,7 +59,7 @@ Source of truth: `lib/app/theme/`, ported from `casca-web/src/styles/tokens`.
 
 - Colors: `CascaColors` (`ThemeExtension`, light and dark). Read them with `context.casca`; never hardcode `Color(0x...)` or `Colors.*` in widgets.
 - Spacing, radius, shadows, typography: `CascaSpacing`, `CascaRadius`, `CascaShadows`, `CascaFontSize`/`CascaFontWeight`. No magic numbers for padding, radius or font size.
-- Keep token values in sync with web: change a token in both places or document the divergence.
+- Keep token values in sync with web: change a token in both places or document the divergence. Known divergence: light `text` is `#334155` in the app (softer than black) and `#1e293b` in web.
 - Font Poppins (400, 500, 600) is bundled in `assets/fonts/poppins/` (SIL OFL, keep `OFL.txt`); the fallback is Inter. Add a weight only if a token needs it.
 
 ## Design system
@@ -67,7 +67,7 @@ Source of truth: `lib/app/theme/`, ported from `casca-web/src/styles/tokens`.
 - Reuse `shared/ui` (`casca_*`) before creating new widgets. Do not use raw `ElevatedButton`, `TextField` or similar when a `casca_*` equivalent exists.
 - If no component covers the need, or it must be extended, ask the user first.
 - User-facing text in Spanish (see root).
-- Available in `shared/ui`: `CascaButton`, `CascaInput` (text, password, `inputFormatters`, `maxLength`, `autofillHints`), `CascaSelect` (dropdown below the field; options take an `icon` SVG or an `image`), `CascaLink`, `CascaIcon`/`CascaIcons`, `CascaOverlayLoader` (full-screen loader, place it last inside a `Stack`), `CascaStepProgress`, `CascaPopover` (anchored panel with outside tap and Escape to close), `CascaActionMenu` (account-style menu built on it), `CascaTooltip` (hover tooltip, any side). Input masks: `shared/formatters/MaskInputFormatter` (`phone`).
+- Available in `shared/ui`: `CascaButton`, `CascaInput` (text, password, `inputFormatters`, `maxLength`, `autofillHints`, `lines` for a textarea), `CascaSelect` (dropdown below the field; options take an `icon` SVG or an `image`), `CascaLink`, `CascaIcon`/`CascaIcons`, `CascaOverlayLoader` (full-screen loader, place it last inside a `Stack`), `CascaStepProgress`, `CascaPopover` (anchored panel with outside tap and Escape to close), `CascaActionMenu` (account-style menu built on it), `CascaTooltip` (hover tooltip, any side), `CascaCheckbox` (checked, unchecked or mixed with `null`), `CascaStatusChip` (tones success, warning, danger, info, neutral), `CascaTable<T>` (columns with `showOnCompact`: below 640 px only those plus checkbox and row-actions menu are drawn; optional selection with a floating bulk-actions bar, sort, pagination footer, skeleton, empty and error states; `CascaTableTwoLineCell` for title plus subtitle cells), `CascaModal` opened with `showCascaModal` (bottom sheet up to 768 px, centered dialog above; sizes sm, md, lg) and `showCascaConfirm` for yes/no questions. Input masks: `shared/formatters/MaskInputFormatter` (`phone`).
 - Widgets of the same type in the same position reuse their `State`: when a screen swaps steps or views that contain stateful inputs, give each branch a distinct `key` (bug found in `RegisterPage`).
 
 ## State management

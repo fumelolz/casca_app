@@ -12,6 +12,7 @@ import 'package:casca_app/core/layout/preferences_nav.dart';
 import 'package:casca_app/core/layout/sidebar.dart';
 import 'package:casca_app/core/layout/topbar.dart';
 import 'package:casca_app/core/layout/topbar_icon_button.dart';
+import 'package:casca_app/features/products/presentation/pages/product_list_page.dart';
 import 'package:casca_app/shared/ui/casca_tooltip.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -713,7 +714,7 @@ void main() {
       await _tap(tester, _inBar('Productos'));
 
       expect(inTopbar('Casca'), findsOneWidget);
-      expect(inPage('Lista de productos'), findsOneWidget);
+      expect(find.byType(ProductListPage), findsOneWidget);
     });
 
     testWidgets('en una pantalla angosta la marca no se desborda', (
