@@ -26,6 +26,14 @@ class ApiClient {
     return _send(() => _dio.post<Object?>(path, data: body), decode);
   }
 
+  Future<T> put<T>(String path, {Object? body, required ApiDecoder<T> decode}) {
+    return _send(() => _dio.put<Object?>(path, data: body), decode);
+  }
+
+  Future<void> delete(String path) {
+    return _send(() => _dio.delete<Object?>(path), (_) {});
+  }
+
   Future<void> postVoid(String path, {Object? body}) {
     return post<void>(path, body: body, decode: (_) {});
   }

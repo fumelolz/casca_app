@@ -220,8 +220,10 @@ class _CascaSelectState<T> extends State<CascaSelect<T>> {
       ],
     );
 
-    if (widget.enabled) return content;
-    return Opacity(opacity: _disabledOpacity, child: content);
+    return Opacity(
+      opacity: widget.enabled ? 1 : _disabledOpacity,
+      child: content,
+    );
   }
 
   Widget? _prefix(CascaSelectOption<T>? selected) {

@@ -120,4 +120,45 @@ void main() {
 
     expect(await jar.loadForRequest(uri), isEmpty);
   });
+
+  test('put envía el cuerpo y decodifica data', () async {
+    RequestOptions? sent;
+    final client = _client((options) async {
+      sent = options;
+      return jsonResponse({'data': 'ok'}, 200);
+    });
+
+    final result = await client.put<String>(
+      '/demo/1',
+      body: {'name': 'x'},
+      decode: (data) => data as String,
+    );
+
+    expect(result, 'ok');
+    expect(sent?.method, 'PUT');
+    expect(sent?.data, {'name': 'x'});
+  });
+
+  test('delete usa el método DELETE', () async {
+    RequestOptions? sent;
+    final client = _client((options) async {
+      sent = options;
+      return jsonResponse({'data': null}, 200);
+    });
+
+    await client.delete('/demo/1');
+
+    expect(sent?.method, 'DELETE');
+    expect(sent?.path, '/demo/1');
+  });
+
+  test('delete convierte el error del servidor en ApiException', () async {
+    final client = _client(
+      (_) async => jsonResponse({'message': 'Tiene productos'}, 409),
+    );
+
+    final error = await _failure(() => client.delete('/demo/1'));
+
+    expect(error.serverMessage, 'Tiene productos');
+  });
 }

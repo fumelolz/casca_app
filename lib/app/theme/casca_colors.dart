@@ -79,7 +79,7 @@ class CascaColors extends ThemeExtension<CascaColors> {
     surfaceSidebar: Color(0xFFFFFFFF),
     surfaceHover: Color(0xFFF8FAFC),
     border: Color(0xFFE2E8F0),
-    text: Color(0xFF1E293B),
+    text: Color(0xFF334155),
     textSecondary: Color(0xFF64748B),
     textMuted: Color(0xFF94A3B8),
   );

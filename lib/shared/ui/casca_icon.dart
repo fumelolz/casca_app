@@ -27,6 +27,15 @@ abstract final class CascaIcons {
   static const String cashRegister = 'assets/icons/cash-register.svg';
   static const String chartColumn = 'assets/icons/chart-column.svg';
   static const String chevronRight = 'assets/icons/chevron-right.svg';
+  static const String chevronLeft = 'assets/icons/chevron-left.svg';
+  static const String dotsThree = 'assets/icons/dots-three.svg';
+  static const String minus = 'assets/icons/minus.svg';
+  static const String trash = 'assets/icons/trash.svg';
+  static const String pencilSimple = 'assets/icons/pencil-simple.svg';
+  static const String magnifyingGlass = 'assets/icons/magnifying-glass.svg';
+  static const String sortAscending = 'assets/icons/sort-ascending.svg';
+  static const String sortDescending = 'assets/icons/sort-descending.svg';
+  static const String arrowsDownUp = 'assets/icons/arrows-down-up.svg';
   static const String clipboardList = 'assets/icons/clipboard-list.svg';
   static const String clock = 'assets/icons/clock.svg';
   static const String clockRotateLeft = 'assets/icons/clock-rotate-left.svg';

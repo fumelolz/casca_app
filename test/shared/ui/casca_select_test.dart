@@ -195,4 +195,36 @@ void main() {
 
     expect(find.byType(Image), findsWidgets);
   });
+
+  testWidgets('abre el menú después de pasar de deshabilitado a habilitado', (
+    tester,
+  ) async {
+    var enabled = false;
+    late StateSetter update;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: CascaTheme.light,
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (context, setState) {
+              update = setState;
+              return CascaSelect<String>(
+                options: _options,
+                value: 'otro',
+                enabled: enabled,
+                onChanged: (_) {},
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    update(() => enabled = true);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(InputDecorator));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ferretería'), findsOneWidget);
+  });
 }

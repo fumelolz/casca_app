@@ -23,6 +23,7 @@ class CascaInput extends StatefulWidget {
     this.autofillHints,
     this.autofocus = false,
     this.maxLength,
+    this.lines = 1,
     this.inputFormatters,
     this.validator,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
@@ -43,6 +44,7 @@ class CascaInput extends StatefulWidget {
   final Iterable<String>? autofillHints;
   final bool autofocus;
   final int? maxLength;
+  final int lines;
   final List<TextInputFormatter>? inputFormatters;
   final FormFieldValidator<String>? validator;
   final AutovalidateMode autovalidateMode;
@@ -134,7 +136,11 @@ class _CascaInputState extends State<CascaInput> {
       obscureText: widget.password && !_passwordVisible,
       enableSuggestions: !widget.password,
       autocorrect: !widget.password,
-      keyboardType: widget.keyboardType,
+      keyboardType:
+          widget.keyboardType ??
+          (widget.lines > 1 ? TextInputType.multiline : null),
+      minLines: widget.password ? 1 : widget.lines,
+      maxLines: widget.password ? 1 : widget.lines,
       textInputAction: widget.textInputAction,
       autofillHints: widget.autofillHints,
       autofocus: widget.autofocus,
