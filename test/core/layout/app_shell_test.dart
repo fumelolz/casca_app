@@ -12,6 +12,9 @@ import 'package:casca_app/core/layout/preferences_nav.dart';
 import 'package:casca_app/core/layout/sidebar.dart';
 import 'package:casca_app/core/layout/topbar.dart';
 import 'package:casca_app/core/layout/topbar_icon_button.dart';
+import 'package:casca_app/core/network/paged_response.dart';
+import 'package:casca_app/features/products/data/models/product_list_item_model.dart';
+import 'package:casca_app/features/products/data/product_repository.dart';
 import 'package:casca_app/features/products/presentation/pages/product_list_page.dart';
 import 'package:casca_app/shared/ui/casca_tooltip.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +23,30 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../support/fake_auth_repository.dart';
+
+class _EmptyProductRepository implements ProductRepository {
+  @override
+  Future<PagedResponse<ProductListItemModel>> getProducts({
+    String search = '',
+    int page = 1,
+    int pageSize = 10,
+    ProductSortField sort = ProductSortField.created,
+    bool descending = true,
+  }) async {
+    return const PagedResponse(
+      items: [],
+      page: 1,
+      pageSize: 10,
+      totalCount: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 const _desktop = Size(1100, 800);
 const _phone = Size(400, 800);
@@ -42,7 +69,10 @@ Future<void> _openApp(
   );
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [authRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repo),
+        productRepositoryProvider.overrideWithValue(_EmptyProductRepository()),
+      ],
       child: Consumer(
         builder: (context, ref, _) => MaterialApp.router(
           theme: CascaTheme.light,
@@ -92,20 +122,6 @@ Future<void> _openDrawer(WidgetTester tester) async {
 
 bool _isDrawerOpen(WidgetTester tester) {
   return tester.getTopLeft(_inSidebar('Vender')).dx >= 0;
-}
-
-BoxDecoration _circleDecoration(WidgetTester tester) {
-  final circle = tester.widget<Container>(
-    find.byKey(const Key('vender-circle')),
-  );
-  return circle.decoration! as BoxDecoration;
-}
-
-Color? _circleRing(WidgetTester tester) => _circleDecoration(tester).color;
-
-bool _circleHasGlow(WidgetTester tester) {
-  final shadows = _circleDecoration(tester).boxShadow ?? const [];
-  return shadows.any((shadow) => shadow.color.a > 0 && shadow.spreadRadius > 0);
 }
 
 double _maxScale(WidgetTester tester) {
@@ -476,20 +492,19 @@ void main() {
     });
 
     group('barra inferior', () {
-      testWidgets(
-        'muestra los cinco accesos con Vender en el centro, sobre la barra',
-        (tester) async {
-          await _openApp(tester, size: _phone);
+      testWidgets('muestra los cinco accesos con Vender en el centro', (
+        tester,
+      ) async {
+        await _openApp(tester, size: _phone);
 
-          final labels = ['Inicio', 'Ventas', 'Vender', 'Caja', 'Productos'];
-          final xs = [
-            for (final label in labels) tester.getCenter(_inBar(label)).dx,
-          ];
+        final labels = ['Inicio', 'Ventas', 'Vender', 'Caja', 'Productos'];
+        final xs = [
+          for (final label in labels) tester.getCenter(_inBar(label)).dx,
+        ];
 
-          expect(xs, orderedEquals([...xs]..sort()));
-          expect(xs[2], closeTo(200, 1));
-        },
-      );
+        expect(xs, orderedEquals([...xs]..sort()));
+        expect(xs[2], closeTo(200, 1));
+      });
 
       testWidgets('con menos permisos Vender sigue en el medio', (
         tester,
@@ -528,9 +543,7 @@ void main() {
         expect(_inBar('Productos'), findsNothing);
       });
 
-      testWidgets('sin permiso de vender la barra queda baja y sin círculo', (
-        tester,
-      ) async {
+      testWidgets('sin permiso de vender no hay resaltado', (tester) async {
         await _openApp(
           tester,
           size: _phone,
@@ -541,17 +554,6 @@ void main() {
 
         expect(_inBar('Vender'), findsNothing);
         expect(tester.getSize(find.byType(MobileBottomBar)).height, 64 + 1);
-      });
-
-      testWidgets('con Vender la barra reserva arriba el espacio del círculo', (
-        tester,
-      ) async {
-        await _openApp(tester, size: _phone);
-
-        expect(
-          tester.getSize(find.byType(MobileBottomBar)).height,
-          64 + 1 + mobileBottomBarLift,
-        );
       });
 
       testWidgets('el acceso activo solo cambia de color, sin píldora', (
@@ -632,24 +634,6 @@ void main() {
         );
       });
 
-      testWidgets('el círculo de Vender se distingue cuando está activo', (
-        tester,
-      ) async {
-        await _openApp(tester, size: _phone);
-        final colors = CascaColors.light;
-        expect(_circleRing(tester), colors.surface);
-
-        await _tap(tester, _inBar('Vender'));
-
-        expect(_circleRing(tester), isNot(colors.surface));
-        expect(_circleHasGlow(tester), isTrue);
-
-        await _tap(tester, _inBar('Caja'));
-
-        expect(_circleRing(tester), colors.surface);
-        expect(_circleHasGlow(tester), isFalse);
-      });
-
       testWidgets('la etiqueta activa va en negrita', (tester) async {
         await _openApp(tester, size: _phone);
 
@@ -672,19 +656,18 @@ void main() {
         expect(inPage('Ventas realizadas'), findsOneWidget);
       });
 
-      testWidgets(
-        'la zona alta del círculo también es tocable y lleva a Vender',
-        (tester) async {
-          await _openApp(tester, size: _phone);
-          final top = tester.getTopLeft(find.byType(MobileBottomBar)).dy;
+      testWidgets('Vender se ve como los demás accesos', (tester) async {
+        await _openApp(tester, size: _phone);
+        Color? color(String label) =>
+            tester.widget<Text>(_inBar(label)).style?.color;
 
-          await tester.tapAt(Offset(200, top + 6));
-          await tester.pumpAndSettle();
+        expect(color('Vender'), color('Caja'));
 
-          expect(inPage('Vender'), findsOneWidget);
-          expect(_isTabActive(tester, 'Vender'), isTrue);
-        },
-      );
+        await _tap(tester, _inBar('Vender'));
+
+        expect(inPage('Vender'), findsOneWidget);
+        expect(_isTabActive(tester, 'Vender'), isTrue);
+      });
 
       testWidgets('Productos queda activo al entrar desde el menú', (
         tester,
@@ -787,7 +770,7 @@ void main() {
         final page = tester.getRect(find.byKey(const Key('home-page')));
 
         expect(bar.bottom, 800);
-        expect(bar.height, 64 + 1 + navigation + mobileBottomBarLift);
+        expect(bar.height, 64 + 1 + navigation);
         expect(
           tester.getBottomLeft(_inBar('Vender')).dy,
           lessThanOrEqualTo(800 - navigation),

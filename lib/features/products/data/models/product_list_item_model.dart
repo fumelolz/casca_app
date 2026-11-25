@@ -1,17 +1,26 @@
 class ProductImageModel {
-  const ProductImageModel({required this.paths});
+  const ProductImageModel({required this.paths, this.fullSizePaths = const []});
 
   factory ProductImageModel.fromJson(Map<String, dynamic> json) {
-    final paths = [
-      json['webpThumbnailUrl'],
-      json['thumbnailUrl'],
-      json['webpUrl'],
-      json['originalUrl'],
-    ].whereType<String>().where((path) => path.isNotEmpty).toSet().toList();
-    return ProductImageModel(paths: paths);
+    List<String> pick(List<String> keys) {
+      return keys
+          .map((key) => json[key])
+          .whereType<String>()
+          .where((path) => path.isNotEmpty)
+          .toSet()
+          .toList();
+    }
+
+    const thumbnails = ['webpThumbnailUrl', 'thumbnailUrl'];
+    const originals = ['webpUrl', 'originalUrl'];
+    return ProductImageModel(
+      paths: pick([...thumbnails, ...originals]),
+      fullSizePaths: pick([...originals, ...thumbnails]),
+    );
   }
 
   final List<String> paths;
+  final List<String> fullSizePaths;
 }
 
 class ProductListItemModel {

@@ -8,6 +8,7 @@ import 'package:casca_app/features/stores/presentation/providers/store_form_prov
 import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_input.dart';
 import 'package:casca_app/shared/ui/casca_modal.dart';
+import 'package:casca_app/shared/ui/casca_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -40,7 +41,7 @@ class StoreFormModal extends ConsumerWidget {
       ],
       child: Center(
         child: error == null
-            ? const CircularProgressIndicator()
+            ? const _StoreFormSkeleton()
             : Text(
                 apiErrorMessage(
                   error,
@@ -49,6 +50,29 @@ class StoreFormModal extends ConsumerWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
+      ),
+    );
+  }
+}
+
+class _StoreFormSkeleton extends StatelessWidget {
+  const _StoreFormSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Cargando sucursal',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < 5; i++) ...const [
+            CascaSkeleton(width: 96),
+            SizedBox(height: CascaSpacing.space2),
+            CascaSkeleton(width: double.infinity, height: CascaSpacing.space8),
+            SizedBox(height: CascaSpacing.space4),
+          ],
+        ],
       ),
     );
   }

@@ -21,10 +21,23 @@ class ProductThumbnail extends StatelessWidget {
         dimension: _thumbnailSize,
         child: ColoredBox(
           color: context.casca.backgroundHover,
-          child: _candidate(context, image?.paths ?? const [], 0),
+          child: ProductPicture(image: image),
         ),
       ),
     );
+  }
+}
+
+class ProductPicture extends StatelessWidget {
+  const ProductPicture({super.key, this.image, this.fullSize = false});
+
+  final ProductImageModel? image;
+  final bool fullSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final paths = fullSize ? image?.fullSizePaths : image?.paths;
+    return _candidate(context, paths ?? const [], 0);
   }
 
   Widget _candidate(BuildContext context, List<String> paths, int index) {
@@ -40,7 +53,7 @@ class ProductThumbnail extends StatelessWidget {
 
     return Image.network(
       '${AppConfig.apiUrl}${paths[index]}',
-      fit: BoxFit.cover,
+      fit: fullSize ? BoxFit.contain : BoxFit.cover,
       excludeFromSemantics: true,
       errorBuilder: (context, error, stackTrace) =>
           _candidate(context, paths, index + 1),

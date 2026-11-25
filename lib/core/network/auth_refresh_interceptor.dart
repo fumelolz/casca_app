@@ -38,6 +38,8 @@ class AuthRefreshInterceptor extends Interceptor {
     }
 
     request.extra[_retriedKey] = true;
+    final body = request.data;
+    if (body is FormData) request.data = body.clone();
     try {
       handler.resolve(await dio.fetch<Object?>(request));
     } on DioException catch (retryError) {

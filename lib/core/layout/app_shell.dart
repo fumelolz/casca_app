@@ -6,6 +6,7 @@ import 'package:casca_app/core/layout/preferences_nav.dart';
 import 'package:casca_app/core/layout/sidebar.dart';
 import 'package:casca_app/core/layout/sidebar_controller.dart';
 import 'package:casca_app/core/layout/topbar.dart';
+import 'package:casca_app/core/routing/app_routes.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -139,7 +140,9 @@ class AppShell extends ConsumerWidget {
     );
     final open = sidebar.mobileOpen;
     final insets = MediaQuery.paddingOf(context);
-    final barExtent = mobileBottomBarExtent(insets.bottom);
+    final showBar = !AppRoutes.isFormRoute(location);
+    final barExtent = showBar ? mobileBottomBarExtent(insets.bottom) : 0.0;
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
 
     return Stack(
       children: [
@@ -148,18 +151,19 @@ class AppShell extends ConsumerWidget {
           children: [
             Topbar(isMobile: true, insets: insets),
             _buildPage(isMobile: true),
-            SizedBox(height: barExtent),
+            SizedBox(height: math.max(barExtent, keyboard)),
           ],
         ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: MobileBottomBar(
-            location: location,
-            bottomInset: insets.bottom,
+        if (showBar)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: MobileBottomBar(
+              location: location,
+              bottomInset: insets.bottom,
+            ),
           ),
-        ),
         if (open)
           Positioned(
             top: topbarHeight + insets.top,

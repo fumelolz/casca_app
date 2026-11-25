@@ -30,6 +30,7 @@ abstract final class CascaIcons {
   static const String chevronLeft = 'assets/icons/chevron-left.svg';
   static const String dotsThree = 'assets/icons/dots-three.svg';
   static const String minus = 'assets/icons/minus.svg';
+  static const String plus = 'assets/icons/plus.svg';
   static const String trash = 'assets/icons/trash.svg';
   static const String pencilSimple = 'assets/icons/pencil-simple.svg';
   static const String magnifyingGlass = 'assets/icons/magnifying-glass.svg';

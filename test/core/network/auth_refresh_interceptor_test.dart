@@ -52,6 +52,20 @@ void main() {
     expect(harness.expired, 0);
   });
 
+  test('reintenta una subida de archivo tras refrescar la sesión', () async {
+    final harness = _Harness(refreshStatus: 200);
+
+    final response = await harness.dio.post<Object?>(
+      _protectedPath,
+      data: FormData.fromMap({
+        'imageFile': MultipartFile.fromBytes([1, 2, 3], filename: 'a.png'),
+      }),
+    );
+
+    expect(response.statusCode, 200);
+    expect(harness.adapter.count('POST', _protectedPath), 2);
+  });
+
   test('varias peticiones con 401 comparten un solo refresh', () async {
     final harness = _Harness(refreshStatus: 200);
 

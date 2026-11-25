@@ -1,6 +1,8 @@
 import 'package:casca_app/app/theme/casca_spacing.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
+import 'package:casca_app/core/auth/auth_controller.dart';
 import 'package:casca_app/core/layout/page_padding.dart';
+import 'package:casca_app/core/routing/app_routes.dart';
 import 'package:casca_app/features/products/data/models/product_list_item_model.dart';
 import 'package:casca_app/features/products/data/product_repository.dart';
 import 'package:casca_app/features/products/domain/product_list_rules.dart';
@@ -8,10 +10,13 @@ import 'package:casca_app/features/products/presentation/providers/product_list_
 import 'package:casca_app/features/products/presentation/widgets/product_thumbnail.dart';
 import 'package:casca_app/features/products/presentation/widgets/stock_level_indicator.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
+import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_filter_bar.dart';
+import 'package:casca_app/shared/ui/casca_icon.dart';
 import 'package:casca_app/shared/ui/casca_page_header.dart';
 import 'package:casca_app/shared/ui/casca_table.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 const String _emptyValue = '—';
@@ -74,15 +79,24 @@ class ProductListPage extends ConsumerWidget {
     final page = products.value;
     final failed = products.hasError && page == null;
     final queryController = ref.read(productListQueryProvider.notifier);
+    final session = ref.watch(authControllerProvider.select((s) => s.session));
+    final canCreate = session?.hasPermission('product.create') ?? false;
+    final canUpdate = session?.hasPermission('product.update') ?? false;
 
     return SingleChildScrollView(
       padding: pagePadding(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const CascaPageHeader(
+          CascaPageHeader(
             title: 'Productos',
             subtitle: 'Consulta los productos y su inventario.',
+            action: canCreate
+                ? CascaButton(
+                    label: 'Agregar producto',
+                    onPressed: () => context.go(AppRoutes.productNew),
+                  )
+                : null,
           ),
           const SizedBox(height: CascaSpacing.space5),
           CascaFilterBar(
@@ -92,6 +106,15 @@ class ProductListPage extends ConsumerWidget {
           const SizedBox(height: CascaSpacing.space4),
           CascaTable<ProductListItemModel>(
             columns: _columns,
+            rowActions: [
+              if (canUpdate)
+                CascaTableRowAction(
+                  label: 'Editar',
+                  icon: CascaIcons.pencilSimple,
+                  onSelected: (product) =>
+                      context.go(AppRoutes.productEditFor(product.id)),
+                ),
+            ],
             rows: page?.items ?? const [],
             rowKey: (product) => product.id,
             loading: products.isLoading,

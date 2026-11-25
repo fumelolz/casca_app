@@ -1,4 +1,5 @@
 import 'package:casca_app/app/theme/casca_theme.dart';
+import 'package:casca_app/core/auth/auth_repository.dart';
 import 'package:casca_app/core/network/api_client.dart';
 import 'package:casca_app/core/network/network_providers.dart';
 import 'package:casca_app/features/products/data/product_endpoints.dart';
@@ -10,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../core/network/fake_http_adapter.dart';
+import '../../../../support/fake_auth_repository.dart';
 
 Map<String, dynamic> _product(
   String id,
@@ -72,6 +74,7 @@ Future<List<RequestOptions>> _pump(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        authRepositoryProvider.overrideWithValue(FakeAuthRepository()),
         apiClientProvider.overrideWithValue(ApiClient(dio, DefaultCookieJar())),
       ],
       child: MaterialApp(

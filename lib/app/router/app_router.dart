@@ -1,4 +1,5 @@
 import 'package:casca_app/app/router/auth_redirect.dart';
+import 'package:casca_app/app/router/confirm_discard.dart';
 import 'package:casca_app/app/router/module_placeholder_page.dart';
 import 'package:casca_app/app/router/shell_page.dart';
 import 'package:casca_app/core/auth/auth_controller.dart';
@@ -14,6 +15,7 @@ import 'package:casca_app/features/auth/presentation/pages/register_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/set_password_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/splash_page.dart';
 import 'package:casca_app/features/products/presentation/pages/category_list_page.dart';
+import 'package:casca_app/features/products/presentation/pages/product_form_page.dart';
 import 'package:casca_app/features/products/presentation/pages/product_list_page.dart';
 import 'package:casca_app/features/stores/presentation/pages/store_list_page.dart';
 import 'package:casca_app/features/home/presentation/pages/home_page.dart';
@@ -109,6 +111,20 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.appearance,
             pageBuilder: (context, state) =>
                 shellPage(state, const AppearancePage()),
+          ),
+          GoRoute(
+            path: AppRoutes.productNew,
+            onExit: confirmDiscard(ref),
+            pageBuilder: (context, state) =>
+                shellPage(state, const ProductFormPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.productEdit,
+            onExit: confirmDiscard(ref),
+            pageBuilder: (context, state) => shellPage(
+              state,
+              ProductFormPage(productId: state.pathParameters['productId']),
+            ),
           ),
           for (final item in _placeholderRoutes)
             GoRoute(

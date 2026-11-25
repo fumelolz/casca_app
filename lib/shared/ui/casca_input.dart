@@ -24,6 +24,8 @@ class CascaInput extends StatefulWidget {
     this.autofocus = false,
     this.maxLength,
     this.lines = 1,
+    this.prefixText,
+    this.suffixText,
     this.inputFormatters,
     this.validator,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
@@ -45,6 +47,8 @@ class CascaInput extends StatefulWidget {
   final bool autofocus;
   final int? maxLength;
   final int lines;
+  final String? prefixText;
+  final String? suffixText;
   final List<TextInputFormatter>? inputFormatters;
   final FormFieldValidator<String>? validator;
   final AutovalidateMode autovalidateMode;
@@ -104,7 +108,7 @@ class _CascaInputState extends State<CascaInput> {
   }
 
   Widget? _buildSuffix(FormFieldState<String> state) {
-    final actions = [
+    final actions = <Widget>[
       if (_showClear)
         _InputAction(
           label: 'Limpiar texto',
@@ -118,6 +122,9 @@ class _CascaInputState extends State<CascaInput> {
           onPressed: widget.enabled ? _togglePasswordVisibility : null,
         ),
     ];
+
+    final suffixText = widget.suffixText;
+    if (suffixText != null) actions.add(_Affix(suffixText));
 
     if (actions.isEmpty) return null;
     return Row(mainAxisSize: MainAxisSize.min, children: actions);
@@ -159,12 +166,14 @@ class _CascaInputState extends State<CascaInput> {
         focusedBorder: invalid
             ? theme.inputDecorationTheme.focusedErrorBorder
             : null,
-        prefixIcon: iconStart == null
-            ? null
-            : SizedBox.square(
+        prefixIcon: iconStart != null
+            ? SizedBox.square(
                 dimension: CascaSpacing.space8,
                 child: Center(child: CascaIcon(iconStart)),
-              ),
+              )
+            : widget.prefixText == null
+            ? null
+            : _Affix(widget.prefixText!),
         suffixIcon: _buildSuffix(state),
       ),
     );
@@ -197,6 +206,30 @@ class _CascaInputState extends State<CascaInput> {
       validator: (_) => widget.validator?.call(_controller.text),
       autovalidateMode: widget.autovalidateMode,
       builder: (state) => _buildField(context, state),
+    );
+  }
+}
+
+class _Affix extends StatelessWidget {
+  const _Affix(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: CascaSpacing.space8,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: CascaSpacing.space3),
+        child: Center(
+          widthFactor: 1,
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(color: context.casca.textMuted),
+          ),
+        ),
+      ),
     );
   }
 }

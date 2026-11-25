@@ -6,6 +6,7 @@ import 'package:casca_app/shared/ui/casca_action_menu.dart';
 import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_checkbox.dart';
 import 'package:casca_app/shared/ui/casca_icon.dart';
+import 'package:casca_app/shared/ui/casca_skeleton.dart';
 import 'package:casca_app/shared/ui/casca_table_bulk_bar.dart';
 import 'package:casca_app/shared/ui/casca_table_footer.dart';
 import 'package:casca_app/shared/ui/casca_table_models.dart';
@@ -471,8 +472,6 @@ class _Skeleton<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.casca;
-
     return Semantics(
       label: 'Cargando',
       child: Column(
@@ -485,15 +484,9 @@ class _Skeleton<T> extends StatelessWidget {
                 columns: columns,
                 selectionCell: selectable ? const SizedBox.shrink() : null,
                 actionsCell: hasActions ? const SizedBox.shrink() : null,
-                cellFor: (_) => FractionallySizedBox(
+                cellFor: (_) => const FractionallySizedBox(
                   widthFactor: 0.7,
-                  child: Container(
-                    height: _skeletonBarHeight,
-                    decoration: BoxDecoration(
-                      color: colors.border,
-                      borderRadius: CascaRadius.sm,
-                    ),
-                  ),
+                  child: CascaSkeleton(height: _skeletonBarHeight),
                 ),
               ),
             ),
