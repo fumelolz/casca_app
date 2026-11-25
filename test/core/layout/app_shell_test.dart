@@ -166,27 +166,39 @@ void main() {
       expect(_tileColor(tester, 'Vender'), isNull);
     });
 
-    testWidgets('un grupo se despliega y navega a su hijo', (tester) async {
+    testWidgets('Productos abre la lista sin desplegar un submenú', (
+      tester,
+    ) async {
       await _openApp(tester);
-      expect(_inSidebar('Lista de productos'), findsNothing);
+      expect(_inSidebar('Categorías de productos'), findsNothing);
 
       await _tap(tester, _inSidebar('Productos'));
-      expect(_inSidebar('Lista de productos'), findsOneWidget);
 
-      await _tap(tester, _inSidebar('Categorías de productos'));
+      expect(find.byType(ProductListPage), findsOneWidget);
+      expect(_tileColor(tester, 'Productos'), _activeBackground);
+    });
 
-      expect(find.text('Categorías de productos'), findsNWidgets(2));
-      expect(_tileColor(tester, 'Categorías de productos'), _activeBackground);
-      expect(_inSidebar('Lista de productos'), findsOneWidget);
+    testWidgets('un grupo se despliega y navega a su hijo', (tester) async {
+      await _openApp(tester);
+      expect(_inSidebar('Turno actual'), findsNothing);
+
+      await _tap(tester, _inSidebar('Control de caja'));
+      expect(_inSidebar('Turno actual'), findsOneWidget);
+
+      await _tap(tester, _inSidebar('Historial de turnos'));
+
+      expect(find.text('Historial de turnos'), findsNWidgets(2));
+      expect(_tileColor(tester, 'Historial de turnos'), _activeBackground);
+      expect(_inSidebar('Turno actual'), findsOneWidget);
     });
 
     testWidgets('un grupo se pliega al tocarlo de nuevo', (tester) async {
       await _openApp(tester);
 
-      await _tap(tester, _inSidebar('Productos'));
-      await _tap(tester, _inSidebar('Productos'));
+      await _tap(tester, _inSidebar('Control de caja'));
+      await _tap(tester, _inSidebar('Control de caja'));
 
-      expect(_inSidebar('Lista de productos'), findsNothing);
+      expect(_inSidebar('Turno actual'), findsNothing);
     });
 
     testWidgets('el botón contrae el menú a solo iconos', (tester) async {
@@ -674,11 +686,12 @@ void main() {
         },
       );
 
-      testWidgets('Productos sigue activo en sus subrutas', (tester) async {
+      testWidgets('Productos queda activo al entrar desde el menú', (
+        tester,
+      ) async {
         await _openApp(tester, size: _phone);
         await _openDrawer(tester);
         await _tap(tester, _inSidebar('Productos'));
-        await _tap(tester, _inSidebar('Categorías de productos'));
 
         expect(_isTabActive(tester, 'Productos'), isTrue);
       });

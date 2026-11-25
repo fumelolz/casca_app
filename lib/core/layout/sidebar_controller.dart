@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:casca_app/core/storage/preferences_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const double mobileBreakpoint = 768;
@@ -17,10 +20,33 @@ class SidebarState {
 }
 
 class SidebarController extends Notifier<SidebarState> {
-  @override
-  SidebarState build() => const SidebarState();
+  bool _chosen = false;
 
-  void toggle() => state = state.copyWith(collapsed: !state.collapsed);
+  @override
+  SidebarState build() {
+    _restore();
+    return const SidebarState();
+  }
+
+  void toggle() => setCollapsed(!state.collapsed);
+
+  void setCollapsed(bool collapsed) {
+    _chosen = true;
+    state = state.copyWith(collapsed: collapsed);
+    unawaited(
+      ref
+          .read(preferencesStorageProvider)
+          .write(PreferencesStorage.sidebarCollapsedKey, '$collapsed'),
+    );
+  }
+
+  Future<void> _restore() async {
+    final stored = await ref
+        .read(preferencesStorageProvider)
+        .read(PreferencesStorage.sidebarCollapsedKey);
+    if (!ref.mounted || _chosen || stored == null) return;
+    state = state.copyWith(collapsed: stored == 'true');
+  }
 
   void toggleMobile() => state = state.copyWith(mobileOpen: !state.mobileOpen);
 

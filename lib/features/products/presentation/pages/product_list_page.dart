@@ -8,8 +8,8 @@ import 'package:casca_app/features/products/presentation/providers/product_list_
 import 'package:casca_app/features/products/presentation/widgets/product_thumbnail.dart';
 import 'package:casca_app/features/products/presentation/widgets/stock_level_indicator.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
-import 'package:casca_app/shared/ui/casca_icon.dart';
-import 'package:casca_app/shared/ui/casca_input.dart';
+import 'package:casca_app/shared/ui/casca_filter_bar.dart';
+import 'package:casca_app/shared/ui/casca_page_header.dart';
 import 'package:casca_app/shared/ui/casca_table.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -69,8 +69,6 @@ class ProductListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.casca;
-    final textTheme = Theme.of(context).textTheme;
     final query = ref.watch(productListQueryProvider);
     final products = ref.watch(productListProvider);
     final page = products.value;
@@ -82,19 +80,14 @@ class ProductListPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Productos', style: textTheme.headlineMedium),
-          const SizedBox(height: CascaSpacing.space1),
-          Text(
-            'Consulta los productos y su inventario.',
-            style: textTheme.bodyMedium?.copyWith(color: colors.textMuted),
+          const CascaPageHeader(
+            title: 'Productos',
+            subtitle: 'Consulta los productos y su inventario.',
           ),
           const SizedBox(height: CascaSpacing.space5),
-          CascaInput(
-            hintText: 'Buscar por nombre, SKU o código...',
-            iconStart: CascaIcons.magnifyingGlass,
-            clearable: true,
-            textInputAction: TextInputAction.search,
-            onChanged: queryController.setSearch,
+          CascaFilterBar(
+            searchHint: 'Buscar por nombre, SKU o código...',
+            onSearchChanged: queryController.setSearch,
           ),
           const SizedBox(height: CascaSpacing.space4),
           CascaTable<ProductListItemModel>(

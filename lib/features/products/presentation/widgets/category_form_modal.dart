@@ -1,7 +1,7 @@
 import 'package:casca_app/app/theme/casca_spacing.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/app/theme/casca_typography.dart';
-import 'package:casca_app/core/errors/api_exception.dart';
+import 'package:casca_app/core/errors/api_error_message.dart';
 import 'package:casca_app/features/products/data/models/category_model.dart';
 import 'package:casca_app/features/products/data/models/category_request.dart';
 import 'package:casca_app/features/products/presentation/providers/category_form_provider.dart';
@@ -62,17 +62,6 @@ class _CategoryFormModalState extends ConsumerState<CategoryFormModal> {
           categoryId: widget.category?.id,
         );
     if (saved && mounted) Navigator.of(context).pop();
-  }
-
-  String _errorMessage(Object error) {
-    if (error is ApiException &&
-        error.type == ApiErrorType.client &&
-        error.serverMessage != null) {
-      return error.serverMessage!;
-    }
-    return _isEdit
-        ? 'No fue posible actualizar la categoría.'
-        : 'No fue posible crear la categoría.';
   }
 
   List<CascaSelectOption<String>> _parentOptions(
@@ -161,7 +150,16 @@ class _CategoryFormModalState extends ConsumerState<CategoryFormModal> {
             ],
             if (error != null) ...[
               const SizedBox(height: CascaSpacing.space4),
-              Text(_errorMessage(error), style: errorStyle),
+              Text(
+                apiErrorMessage(
+                  error,
+                  _isEdit
+                      ? 'No fue posible actualizar la categoría.'
+                      : 'No fue posible crear la categoría.',
+                  forbidden: 'No tienes permiso para esta acción.',
+                ),
+                style: errorStyle,
+              ),
             ],
           ],
         ),

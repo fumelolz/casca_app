@@ -1,5 +1,4 @@
 import 'package:casca_app/app/theme/casca_spacing.dart';
-import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/core/auth/auth_controller.dart';
 import 'package:casca_app/core/layout/page_padding.dart';
 import 'package:casca_app/features/products/data/models/category_model.dart';
@@ -8,8 +7,9 @@ import 'package:casca_app/features/products/presentation/widgets/category_delete
 import 'package:casca_app/features/products/presentation/widgets/category_form_modal.dart';
 import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_modal.dart';
+import 'package:casca_app/shared/ui/casca_filter_bar.dart';
 import 'package:casca_app/shared/ui/casca_icon.dart';
-import 'package:casca_app/shared/ui/casca_input.dart';
+import 'package:casca_app/shared/ui/casca_page_header.dart';
 import 'package:casca_app/shared/ui/casca_table.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -86,8 +86,6 @@ class CategoryListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.casca;
-    final textTheme = Theme.of(context).textTheme;
     final query = ref.watch(categoryListQueryProvider);
     final categories = ref.watch(categoryListProvider);
     final page = categories.value;
@@ -102,43 +100,22 @@ class CategoryListPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: CascaSpacing.space4,
-            runSpacing: CascaSpacing.space3,
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Categorías de productos',
-                    style: textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: CascaSpacing.space1),
-                  Text(
-                    'Organiza tus productos en categorías.',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colors.textMuted,
-                    ),
-                  ),
-                ],
-              ),
-              if (canCreate)
-                CascaButton(
-                  label: 'Agregar categoría',
-                  onPressed: () => _openForm(context),
-                ),
-            ],
+          CascaPageHeader(
+            title: 'Categorías de productos',
+            subtitle: 'Organiza tus productos en categorías.',
+            action: canCreate
+                ? CascaButton(
+                    label: 'Agregar categoría',
+                    onPressed: () => _openForm(context),
+                  )
+                : null,
           ),
           const SizedBox(height: CascaSpacing.space5),
-          CascaInput(
-            hintText: 'Buscar categoría...',
-            iconStart: CascaIcons.magnifyingGlass,
-            clearable: true,
-            textInputAction: TextInputAction.search,
-            onChanged: ref.read(categoryListQueryProvider.notifier).setSearch,
+          CascaFilterBar(
+            searchHint: 'Buscar categoría...',
+            onSearchChanged: ref
+                .read(categoryListQueryProvider.notifier)
+                .setSearch,
           ),
           const SizedBox(height: CascaSpacing.space4),
           CascaTable<CategoryModel>(

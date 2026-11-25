@@ -50,11 +50,13 @@ void main() {
 
     test('un grupo solo conserva los hijos permitidos', () {
       final nav = buildNavigation(
-        fullAccessSession(permissions: ['product.view']),
+        fullAccessSession(permissions: ['cashregister.shifts.view']),
       );
 
-      final products = nav.sections.single.items.single;
-      expect(products.children!.map((c) => c.label), ['Lista de productos']);
+      final cashRegister = nav.sections.single.items.single;
+      expect(cashRegister.children!.map((c) => c.label), [
+        'Historial de turnos',
+      ]);
     });
 
     test('un grupo sin hijos visibles se oculta', () {

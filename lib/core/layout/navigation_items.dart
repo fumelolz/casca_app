@@ -68,29 +68,8 @@ const navigationModules = [
     label: 'Productos',
     icon: CascaIcons.cube,
     section: 'Catálogo',
-    children: [
-      NavigationItem(
-        id: 'products-list',
-        label: 'Lista de productos',
-        icon: CascaIcons.list,
-        route: '/products',
-        permission: 'product.view',
-      ),
-      NavigationItem(
-        id: 'categories-list',
-        label: 'Categorías de productos',
-        icon: CascaIcons.tags,
-        route: '/products/categories',
-        permission: 'category.view',
-      ),
-      NavigationItem(
-        id: 'inventory-counts',
-        label: 'Conteos de inventario',
-        icon: CascaIcons.clipboardList,
-        route: '/inventory-counts',
-        anyPermission: ['inventory.view', 'inventory.count'],
-      ),
-    ],
+    route: AppRoutes.products,
+    permission: 'product.view',
   ),
   NavigationItem(
     id: 'reports',
@@ -143,6 +122,13 @@ const preferenceModules = [
     icon: CascaIcons.tags,
     route: '/price-lists',
     permission: 'pricelist.view',
+  ),
+  NavigationItem(
+    id: 'categories-list',
+    label: 'Categorías de productos',
+    icon: CascaIcons.list,
+    route: AppRoutes.productCategories,
+    permission: 'category.view',
   ),
   NavigationItem(
     id: 'businesses',
@@ -225,6 +211,5 @@ const mobileTabModules = [
     icon: CascaIcons.cube,
     route: '/products',
     permission: 'product.view',
-    matchPrefixes: ['/products', '/inventory-counts'],
   ),
 ];
