@@ -14,6 +14,7 @@ class AuthCardLayout extends StatelessWidget {
     required this.child,
     this.showBackLink = false,
     this.overlay,
+    this.onBack,
   });
 
   static const double _cardWidth = 450;
@@ -22,9 +23,20 @@ class AuthCardLayout extends StatelessWidget {
   final Widget child;
   final bool showBackLink;
   final Widget? overlay;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      canPop: onBack == null,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) onBack?.call();
+      },
+      child: _scaffold(context),
+    );
+  }
+
+  Widget _scaffold(BuildContext context) {
     final colors = context.casca;
     final overlay = this.overlay;
 

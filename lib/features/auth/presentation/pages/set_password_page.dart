@@ -83,6 +83,8 @@ class _SetPasswordPageState extends ConsumerState<SetPasswordPage> {
 
     return AuthCardLayout(
       showBackLink: !completed,
+      onBack: () =>
+          context.go(completed ? AppRoutes.login : AppRoutes.forgotPassword),
       child: completed
           ? const _DoneView()
           : _FormView(

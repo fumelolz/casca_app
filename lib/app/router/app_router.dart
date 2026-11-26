@@ -8,6 +8,7 @@ import 'package:casca_app/core/layout/navigation_items.dart';
 import 'package:casca_app/core/layout/preferences_hub_page.dart';
 import 'package:casca_app/core/routing/app_routes.dart';
 import 'package:casca_app/features/appearance/presentation/pages/appearance_page.dart';
+import 'package:casca_app/features/businesses/presentation/pages/business_list_page.dart';
 import 'package:casca_app/features/cash_registers/presentation/pages/cash_register_list_page.dart';
 import 'package:casca_app/features/cash_registers/presentation/pages/close_shift_page.dart';
 import 'package:casca_app/features/cash_registers/presentation/pages/current_shift_page.dart';
@@ -41,6 +42,7 @@ final _placeholderRoutes = allNavigationRoutes
       (item) =>
           item.route != AppRoutes.home &&
           item.route != AppRoutes.pos &&
+          item.route != AppRoutes.businesses &&
           item.route != AppRoutes.sales &&
           item.route != AppRoutes.currentShift &&
           item.route != AppRoutes.shiftHistory &&
@@ -99,6 +101,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.pos,
             pageBuilder: (context, state) => shellPage(state, const PosPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.businesses,
+            pageBuilder: (context, state) =>
+                shellPage(state, const BusinessListPage()),
           ),
           GoRoute(
             path: AppRoutes.sales,

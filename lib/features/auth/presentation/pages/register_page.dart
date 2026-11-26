@@ -5,7 +5,7 @@ import 'package:casca_app/core/auth/register_request.dart';
 import 'package:casca_app/core/errors/api_exception.dart';
 import 'package:casca_app/core/routing/app_routes.dart';
 import 'package:casca_app/features/auth/domain/password_rules.dart';
-import 'package:casca_app/features/auth/presentation/business_type_options.dart';
+import 'package:casca_app/core/auth/business_type_options.dart';
 import 'package:casca_app/features/auth/presentation/providers/register_controller.dart';
 import 'package:casca_app/features/auth/presentation/widgets/auth_card_layout.dart';
 import 'package:casca_app/features/auth/presentation/widgets/password_requirements_hint.dart';
@@ -107,6 +107,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   void _back() => setState(() => _step = _step - 1);
 
+  void _systemBack() {
+    if (ref.read(registerControllerProvider).isLoading) return;
+    if (_step > 0) return _back();
+    context.go(AppRoutes.login);
+  }
+
   Future<void> _next() async {
     if (_isLastStep) setState(() => _submitAttempted = true);
 
@@ -143,6 +149,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final info = _steps[_step];
 
     return AuthCardLayout(
+      onBack: _systemBack,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -60,6 +60,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
     return AuthCardLayout(
       showBackLink: true,
+      onBack: () => context.go(AppRoutes.login),
       child: sent
           ? _SentView(onContinue: _goToCode)
           : _RequestView(

@@ -71,6 +71,19 @@ class AuthController extends Notifier<AuthState> {
     state = AuthState.authenticated(session);
   }
 
+  void applySession(SessionState session) {
+    if (state.status != AuthStatus.authenticated) return;
+    state = AuthState.authenticated(session);
+  }
+
+  Future<void> refreshSession() async {
+    try {
+      applySession(await _repository.me());
+    } on ApiException {
+      return;
+    }
+  }
+
   Future<void> signOut() async {
     try {
       await _repository.logout();

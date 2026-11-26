@@ -7,8 +7,10 @@ import 'package:casca_app/core/layout/sidebar.dart';
 import 'package:casca_app/core/layout/sidebar_controller.dart';
 import 'package:casca_app/core/layout/topbar.dart';
 import 'package:casca_app/core/routing/app_routes.dart';
+import 'package:casca_app/core/routing/navigation_history.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 const double _drawerMaxWidth = 300;
@@ -19,18 +21,49 @@ const double _edgeSwipeWidth = 20;
 const double _edgeSwipeThreshold = 6;
 const double _swipeCloseVelocity = 300;
 
-class AppShell extends ConsumerWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key, required this.location, required this.child});
 
   final String location;
   final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  final _history = NavigationHistory();
+
+  String get location => widget.location;
+
+  @override
+  void initState() {
+    super.initState();
+    _history.visit(location);
+  }
+
+  @override
+  void didUpdateWidget(AppShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.location != location) _history.visit(location);
+  }
+
+  void _goBack(bool drawerOpen) {
+    if (drawerOpen) {
+      ref.read(sidebarProvider.notifier).closeMobile();
+      return;
+    }
+    final previous = _history.previous;
+    if (previous != null) context.go(previous);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final colors = context.casca;
     final sidebar = ref.watch(sidebarProvider);
+    final canExit = !sidebar.mobileOpen && _history.previous == null;
 
-    return LayoutBuilder(
+    final shell = LayoutBuilder(
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth <= mobileBreakpoint;
 
@@ -48,11 +81,19 @@ class AppShell extends ConsumerWidget {
           child: Material(
             color: colors.background,
             child: isMobile
-                ? _buildMobile(context, ref, sidebar, constraints.maxWidth)
+                ? _buildMobile(context, sidebar, constraints.maxWidth)
                 : _buildDesktop(sidebar),
           ),
         );
       },
+    );
+
+    return PopScope(
+      canPop: canExit,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _goBack(sidebar.mobileOpen);
+      },
+      child: shell,
     );
   }
 
@@ -60,8 +101,8 @@ class AppShell extends ConsumerWidget {
     final page = Expanded(
       child: ClipRect(
         child: isMobile
-            ? SafeArea(top: false, bottom: false, child: child)
-            : child,
+            ? SafeArea(top: false, bottom: false, child: widget.child)
+            : widget.child,
       ),
     );
 
@@ -122,7 +163,7 @@ class AppShell extends ConsumerWidget {
     );
   }
 
-  void _closeOnSwipeLeft(WidgetRef ref, DragEndDetails details) {
+  void _closeOnSwipeLeft(DragEndDetails details) {
     if ((details.primaryVelocity ?? 0) < -_swipeCloseVelocity) {
       ref.read(sidebarProvider.notifier).closeMobile();
     }
@@ -130,7 +171,6 @@ class AppShell extends ConsumerWidget {
 
   Widget _buildMobile(
     BuildContext context,
-    WidgetRef ref,
     SidebarState sidebar,
     double screenWidth,
   ) {
@@ -177,8 +217,7 @@ class AppShell extends ConsumerWidget {
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: ref.read(sidebarProvider.notifier).closeMobile,
-                onHorizontalDragEnd: (details) =>
-                    _closeOnSwipeLeft(ref, details),
+                onHorizontalDragEnd: _closeOnSwipeLeft,
                 child: const ColoredBox(color: _backdropColor),
               ),
             ),
@@ -213,8 +252,7 @@ class AppShell extends ConsumerWidget {
                 ignoring: !open,
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onHorizontalDragEnd: (details) =>
-                      _closeOnSwipeLeft(ref, details),
+                  onHorizontalDragEnd: _closeOnSwipeLeft,
                   child: Sidebar(
                     location: location,
                     compact: false,
