@@ -21,9 +21,17 @@ class ApiClient {
   Future<T> post<T>(
     String path, {
     Object? body,
+    Map<String, String>? headers,
     required ApiDecoder<T> decode,
   }) {
-    return _send(() => _dio.post<Object?>(path, data: body), decode);
+    return _send(
+      () => _dio.post<Object?>(
+        path,
+        data: body,
+        options: headers == null ? null : Options(headers: headers),
+      ),
+      decode,
+    );
   }
 
   Future<T> put<T>(String path, {Object? body, required ApiDecoder<T> decode}) {
@@ -83,7 +91,23 @@ class ApiClient {
       type: ApiErrorType.client,
       statusCode: status,
       serverMessage: message,
+      details: _errorDetails(error.response?.data),
     );
+  }
+
+  List<ApiErrorDetail> _errorDetails(Object? body) {
+    final errors = body is Map<String, dynamic> ? body['errors'] : null;
+    if (errors is! List<Object?>) return const [];
+
+    return [
+      for (final item in errors)
+        if (item case {'description': final String description})
+          ApiErrorDetail(
+            description: description,
+            code: item['code'] is String ? item['code'] as String : null,
+            field: item['field'] is String ? item['field'] as String : null,
+          ),
+    ];
   }
 
   ApiErrorType _typeWithoutResponse(DioExceptionType type) {

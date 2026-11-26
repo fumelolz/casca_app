@@ -14,6 +14,7 @@ import 'package:casca_app/features/auth/presentation/pages/login_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/register_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/set_password_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/splash_page.dart';
+import 'package:casca_app/features/pos/presentation/pages/pos_page.dart';
 import 'package:casca_app/features/products/presentation/pages/category_list_page.dart';
 import 'package:casca_app/features/products/presentation/pages/product_form_page.dart';
 import 'package:casca_app/features/products/presentation/pages/product_list_page.dart';
@@ -31,6 +32,7 @@ final _placeholderRoutes = allNavigationRoutes
     .where(
       (item) =>
           item.route != AppRoutes.home &&
+          item.route != AppRoutes.pos &&
           item.route != AppRoutes.products &&
           item.route != AppRoutes.stores &&
           item.route != AppRoutes.appearance &&
@@ -81,6 +83,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.home,
             pageBuilder: (context, state) => shellPage(state, const HomePage()),
+          ),
+          GoRoute(
+            path: AppRoutes.pos,
+            pageBuilder: (context, state) => shellPage(state, const PosPage()),
           ),
           GoRoute(
             path: AppRoutes.preferences,

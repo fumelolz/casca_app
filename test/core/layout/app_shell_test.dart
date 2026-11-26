@@ -13,6 +13,9 @@ import 'package:casca_app/core/layout/sidebar.dart';
 import 'package:casca_app/core/layout/topbar.dart';
 import 'package:casca_app/core/layout/topbar_icon_button.dart';
 import 'package:casca_app/core/network/paged_response.dart';
+import 'package:casca_app/features/pos/data/models/pos_catalog_model.dart';
+import 'package:casca_app/features/pos/data/pos_repository.dart';
+import 'package:casca_app/features/pos/presentation/pages/pos_page.dart';
 import 'package:casca_app/features/products/data/models/product_list_item_model.dart';
 import 'package:casca_app/features/products/data/product_repository.dart';
 import 'package:casca_app/features/products/presentation/pages/product_list_page.dart';
@@ -23,6 +26,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../support/fake_auth_repository.dart';
+
+class _EmptyPosRepository implements PosRepository {
+  @override
+  Future<PosCatalogPageModel> catalog(String search, int page) async {
+    return const PosCatalogPageModel(items: [], hasNextPage: false);
+  }
+
+  @override
+  Future<bool> hasActiveShift() async => true;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 class _EmptyProductRepository implements ProductRepository {
   @override
@@ -72,6 +88,7 @@ Future<void> _openApp(
       overrides: [
         authRepositoryProvider.overrideWithValue(repo),
         productRepositoryProvider.overrideWithValue(_EmptyProductRepository()),
+        posRepositoryProvider.overrideWithValue(_EmptyPosRepository()),
       ],
       child: Consumer(
         builder: (context, ref, _) => MaterialApp.router(
@@ -665,7 +682,7 @@ void main() {
 
         await _tap(tester, _inBar('Vender'));
 
-        expect(inPage('Vender'), findsOneWidget);
+        expect(find.byType(PosPage), findsOneWidget);
         expect(_isTabActive(tester, 'Vender'), isTrue);
       });
 

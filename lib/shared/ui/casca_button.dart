@@ -89,7 +89,9 @@ class CascaButton extends StatelessWidget {
             ),
             const SizedBox(width: CascaSpacing.space2),
           ],
-          Text(label),
+          Flexible(
+            child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ),
         ],
       ),
     );
