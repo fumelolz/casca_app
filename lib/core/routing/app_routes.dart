@@ -16,10 +16,29 @@ abstract final class AppRoutes {
   static const appearance = '/appearance';
   static const cashRegisters = '/cash-register/registers';
 
+  static const sales = '/sales';
+  static const saleDetail = '/sales/:saleId';
+  static const saleShiftParameter = 'turno';
+
   static const priceLists = '/price-lists';
   static const priceListDetail = '/price-lists/:priceListId';
 
+  static const currentShift = '/cash-register/current-shift';
+  static const closeShift = '/cash-register/current-shift/close';
+
+  static const shiftHistory = '/cash-register/shift-history';
+  static const shiftDetail = '/cash-register/shift-history/:shiftId';
+
   static const guestRoutes = {login, forgotPassword, setPassword, register};
+
+  static String shiftDetailFor(String shiftId) => '$shiftHistory/$shiftId';
+
+  static String saleDetailFor(String saleId, {String? shiftId}) {
+    return Uri(
+      path: '$sales/$saleId',
+      queryParameters: shiftId == null ? null : {saleShiftParameter: shiftId},
+    ).toString();
+  }
 
   static String priceListFor(String priceListId) => '$priceLists/$priceListId';
 
@@ -27,6 +46,7 @@ abstract final class AppRoutes {
 
   static bool isFormRoute(String location) {
     return location == productNew ||
+        location == closeShift ||
         RegExp(r'^/products/[^/]+/edit$').hasMatch(location) ||
         RegExp(r'^/price-lists/[^/]+$').hasMatch(location);
   }

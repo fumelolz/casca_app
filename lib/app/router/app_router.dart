@@ -9,6 +9,10 @@ import 'package:casca_app/core/layout/preferences_hub_page.dart';
 import 'package:casca_app/core/routing/app_routes.dart';
 import 'package:casca_app/features/appearance/presentation/pages/appearance_page.dart';
 import 'package:casca_app/features/cash_registers/presentation/pages/cash_register_list_page.dart';
+import 'package:casca_app/features/cash_registers/presentation/pages/close_shift_page.dart';
+import 'package:casca_app/features/cash_registers/presentation/pages/current_shift_page.dart';
+import 'package:casca_app/features/cash_registers/presentation/pages/shift_detail_page.dart';
+import 'package:casca_app/features/cash_registers/presentation/pages/shift_history_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/login_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/register_page.dart';
@@ -20,6 +24,8 @@ import 'package:casca_app/features/price_lists/presentation/pages/price_list_pag
 import 'package:casca_app/features/products/presentation/pages/category_list_page.dart';
 import 'package:casca_app/features/products/presentation/pages/product_form_page.dart';
 import 'package:casca_app/features/products/presentation/pages/product_list_page.dart';
+import 'package:casca_app/features/sales/presentation/pages/sale_detail_page.dart';
+import 'package:casca_app/features/sales/presentation/pages/sales_history_page.dart';
 import 'package:casca_app/features/stores/presentation/pages/store_list_page.dart';
 import 'package:casca_app/features/home/presentation/pages/home_page.dart';
 import 'package:flutter/foundation.dart';
@@ -35,6 +41,9 @@ final _placeholderRoutes = allNavigationRoutes
       (item) =>
           item.route != AppRoutes.home &&
           item.route != AppRoutes.pos &&
+          item.route != AppRoutes.sales &&
+          item.route != AppRoutes.currentShift &&
+          item.route != AppRoutes.shiftHistory &&
           item.route != AppRoutes.priceLists &&
           item.route != AppRoutes.products &&
           item.route != AppRoutes.stores &&
@@ -92,6 +101,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => shellPage(state, const PosPage()),
           ),
           GoRoute(
+            path: AppRoutes.sales,
+            pageBuilder: (context, state) =>
+                shellPage(state, const SalesHistoryPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.saleDetail,
+            pageBuilder: (context, state) => shellPage(
+              state,
+              SaleDetailPage(
+                saleId: state.pathParameters['saleId']!,
+                shiftId:
+                    state.uri.queryParameters[AppRoutes.saleShiftParameter],
+              ),
+            ),
+          ),
+          GoRoute(
             path: AppRoutes.priceLists,
             pageBuilder: (context, state) =>
                 shellPage(state, const PriceListPage()),
@@ -104,6 +129,29 @@ final routerProvider = Provider<GoRouter>((ref) {
               PriceListDetailPage(
                 priceListId: state.pathParameters['priceListId']!,
               ),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.currentShift,
+            pageBuilder: (context, state) =>
+                shellPage(state, const CurrentShiftPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.closeShift,
+            onExit: confirmDiscard(ref),
+            pageBuilder: (context, state) =>
+                shellPage(state, const CloseShiftPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.shiftHistory,
+            pageBuilder: (context, state) =>
+                shellPage(state, const ShiftHistoryPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.shiftDetail,
+            pageBuilder: (context, state) => shellPage(
+              state,
+              ShiftDetailPage(shiftId: state.pathParameters['shiftId']!),
             ),
           ),
           GoRoute(

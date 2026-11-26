@@ -13,9 +13,16 @@ import 'package:casca_app/core/layout/sidebar.dart';
 import 'package:casca_app/core/layout/topbar.dart';
 import 'package:casca_app/core/layout/topbar_icon_button.dart';
 import 'package:casca_app/core/network/paged_response.dart';
+import 'package:casca_app/features/cash_registers/data/current_shift_repository.dart';
+import 'package:casca_app/features/cash_registers/data/models/current_shift_model.dart';
+import 'package:casca_app/features/cash_registers/data/models/shift_model.dart';
+import 'package:casca_app/features/cash_registers/data/shift_repository.dart';
 import 'package:casca_app/features/pos/data/models/pos_catalog_model.dart';
 import 'package:casca_app/features/pos/data/pos_repository.dart';
 import 'package:casca_app/features/pos/presentation/pages/pos_page.dart';
+import 'package:casca_app/features/sales/data/models/sale_history_model.dart';
+import 'package:casca_app/features/sales/data/sales_repository.dart';
+import 'package:casca_app/features/sales/presentation/pages/sales_history_page.dart';
 import 'package:casca_app/features/products/data/models/product_list_item_model.dart';
 import 'package:casca_app/features/products/data/product_repository.dart';
 import 'package:casca_app/features/products/presentation/pages/product_list_page.dart';
@@ -26,6 +33,59 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../support/fake_auth_repository.dart';
+
+class _EmptySalesRepository implements SalesRepository {
+  @override
+  Future<PagedResponse<SaleListItemModel>> getSales({
+    required int page,
+    required int pageSize,
+    String search = '',
+    SaleSortField sort = SaleSortField.created,
+    bool descending = true,
+  }) async {
+    return const PagedResponse(
+      items: [],
+      page: 1,
+      pageSize: 10,
+      totalCount: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _NoCurrentShiftRepository implements CurrentShiftRepository {
+  @override
+  Future<CurrentShiftModel?> getCurrent() async => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _EmptyShiftRepository implements ShiftRepository {
+  @override
+  Future<PagedResponse<ShiftListItemModel>> getShifts({
+    required int page,
+    required int pageSize,
+  }) async {
+    return const PagedResponse(
+      items: [],
+      page: 1,
+      pageSize: 10,
+      totalCount: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 class _EmptyPosRepository implements PosRepository {
   @override
@@ -93,6 +153,11 @@ Future<void> _openApp(
         authRepositoryProvider.overrideWithValue(repo),
         productRepositoryProvider.overrideWithValue(_EmptyProductRepository()),
         posRepositoryProvider.overrideWithValue(_EmptyPosRepository()),
+        shiftRepositoryProvider.overrideWithValue(_EmptyShiftRepository()),
+        currentShiftRepositoryProvider.overrideWithValue(
+          _NoCurrentShiftRepository(),
+        ),
+        salesRepositoryProvider.overrideWithValue(_EmptySalesRepository()),
       ],
       child: Consumer(
         builder: (context, ref, _) => MaterialApp.router(
@@ -324,7 +389,7 @@ void main() {
       await _tap(tester, find.text('Turno actual'));
 
       expect(find.text('CONTROL DE CAJA'), findsNothing);
-      expect(find.text('Turno actual'), findsOneWidget);
+      expect(find.text('No hay un turno activo'), findsOneWidget);
     });
 
     testWidgets('Escape cierra el flyout', (tester) async {
@@ -674,7 +739,7 @@ void main() {
 
         await _tap(tester, _inBar('Ventas'));
 
-        expect(inPage('Ventas realizadas'), findsOneWidget);
+        expect(find.byType(SalesHistoryPage), findsOneWidget);
       });
 
       testWidgets('Vender se ve como los demás accesos', (tester) async {

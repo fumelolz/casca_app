@@ -1,7 +1,9 @@
 import 'package:casca_app/app/theme/casca_radius.dart';
 import 'package:casca_app/app/theme/casca_spacing.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
+import 'package:casca_app/core/auth/auth_controller.dart';
 import 'package:casca_app/core/errors/api_error_message.dart';
+import 'package:casca_app/core/routing/app_routes.dart';
 import 'package:casca_app/features/pos/data/models/pos_catalog_model.dart';
 import 'package:casca_app/features/pos/domain/payment_rules.dart';
 import 'package:casca_app/features/pos/presentation/providers/pos_cart_provider.dart';
@@ -19,10 +21,11 @@ import 'package:casca_app/shared/ui/casca_icon.dart';
 import 'package:casca_app/shared/ui/casca_input.dart';
 import 'package:casca_app/shared/ui/casca_modal.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 const double _sidePanelBreakpoint = 840;
-const double _panelWidth = 360;
+const double _panelWidth = 420;
 
 class PosPage extends ConsumerStatefulWidget {
   const PosPage({super.key});
@@ -230,6 +233,11 @@ class _ShiftNotice extends ConsumerWidget {
     final shift = ref.watch(activeShiftProvider);
     if (shift.isLoading || shift.value == true) return const SizedBox.shrink();
     final failed = shift.hasError;
+    final canOpen = ref.watch(
+      authControllerProvider.select(
+        (s) => s.session?.hasPermission('cashregister.open') ?? false,
+      ),
+    );
 
     return Container(
       padding: const EdgeInsets.all(CascaSpacing.space3),
@@ -249,15 +257,20 @@ class _ShiftNotice extends ConsumerWidget {
           ),
           if (!failed)
             Text(
-              'Inicia tu turno desde la web para poder registrar ventas.',
+              canOpen
+                  ? 'Abre tu turno para poder registrar ventas.'
+                  : 'Pide a un administrador que te permita abrir un turno.',
               style: textTheme.bodySmall,
             ),
-          CascaButton(
-            label: failed ? 'Reintentar' : 'Ya lo inicié',
-            size: CascaButtonSize.sm,
-            variant: CascaButtonVariant.secondary,
-            onPressed: () => ref.invalidate(activeShiftProvider),
-          ),
+          if (failed || canOpen)
+            CascaButton(
+              label: failed ? 'Reintentar' : 'Ir a abrir turno',
+              size: CascaButtonSize.sm,
+              variant: CascaButtonVariant.secondary,
+              onPressed: failed
+                  ? () => ref.invalidate(activeShiftProvider)
+                  : () => context.go(AppRoutes.currentShift),
+            ),
         ],
       ),
     );
