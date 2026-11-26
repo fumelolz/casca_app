@@ -508,6 +508,20 @@ void main() {
       expect(server.sent('POST'), isEmpty);
     });
 
+    testWidgets('en teléfono la tabla muestra el signo sin desbordar', (
+      tester,
+    ) async {
+      await _pump(tester, _Server(), width: 360);
+      await addOption(tester, 'Añadir opciones', 'Talla', ['CH', 'M']);
+      await addOption(tester, 'Agregar opción', 'Color', ['Rojo', 'Azul']);
+
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.widget<TextField>(cell('group-price-CH')).decoration!.prefixIcon,
+        isNotNull,
+      );
+    });
+
     testWidgets('un servicio no tiene variantes', (tester) async {
       await _pump(tester, _Server());
 

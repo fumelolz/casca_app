@@ -1,10 +1,10 @@
 import 'package:casca_app/app/theme/casca_spacing.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
-import 'package:casca_app/app/theme/casca_typography.dart';
 import 'package:casca_app/features/products/data/models/product_variant_model.dart';
 import 'package:casca_app/features/products/domain/product_variant_view_rules.dart';
 import 'package:casca_app/features/products/presentation/widgets/product_form_fields.dart';
 import 'package:casca_app/features/products/presentation/widgets/product_thumbnail.dart';
+import 'package:casca_app/features/products/presentation/widgets/variant_table_parts.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
 import 'package:casca_app/shared/ui/casca_action_menu.dart';
 import 'package:casca_app/shared/ui/casca_checkbox.dart';
@@ -13,8 +13,6 @@ import 'package:casca_app/shared/ui/casca_select.dart';
 import 'package:casca_app/shared/ui/casca_status_chip.dart';
 import 'package:material_ui/material_ui.dart';
 
-const double _compactWidth = 560;
-const double _actionsSize = 44;
 const int _titleFlex = 4;
 const int _skuFlex = 3;
 const int _statusFlex = 3;
@@ -90,7 +88,7 @@ class _ProductVariantListState extends State<ProductVariantList> {
           ),
         ],
         child: SizedBox.square(
-          dimension: _actionsSize,
+          dimension: variantTableActionSize,
           child: Center(
             child: CascaIcon(
               CascaIcons.dotsThree,
@@ -148,20 +146,8 @@ class _ProductVariantListState extends State<ProductVariantList> {
             excludeSemantics: true,
             child: InkResponse(
               onTap: toggle,
-              radius: _actionsSize / 2,
-              child: SizedBox.square(
-                dimension: _actionsSize,
-                child: Center(
-                  child: RotatedBox(
-                    quarterTurns: expanded ? 2 : 0,
-                    child: CascaIcon(
-                      CascaIcons.chevronDown,
-                      size: CascaSpacing.space4,
-                      color: context.casca.textSecondary,
-                    ),
-                  ),
-                ),
-              ),
+              radius: variantTableActionSize / 2,
+              child: VariantGroupChevron(expanded: expanded),
             ),
           ),
         ),
@@ -194,7 +180,7 @@ class _ProductVariantListState extends State<ProductVariantList> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact = constraints.maxWidth < _compactWidth;
+        final compact = constraints.maxWidth < variantTableCompactWidth;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -212,7 +198,18 @@ class _ProductVariantListState extends State<ProductVariantList> {
               ),
               const SizedBox(height: CascaSpacing.space3),
             ],
-            if (!compact) const _Header(),
+            if (!compact)
+              const VariantTableHeader(
+                leadingSpace: variantTableActionSize,
+                trailingSpace: variantTableActionSize,
+                columns: [
+                  VariantTableColumn('Variante', _titleFlex),
+                  VariantTableColumn('SKU', _skuFlex),
+                  VariantTableColumn('Estado', _statusFlex),
+                  VariantTableColumn('Precio', _priceFlex),
+                  VariantTableColumn('Stock', _stockFlex),
+                ],
+              ),
             if (names.length > 1)
               for (final group in buildRowGroups(widget.variants, groupBy!))
                 _group(group, groupBy, compact)
@@ -222,33 +219,6 @@ class _ProductVariantListState extends State<ProductVariantList> {
           ],
         );
       },
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header();
-
-  @override
-  Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.labelMedium
-        ?.copyWith(color: context.casca.textSecondary);
-    Widget column(int flex, String text) => Expanded(
-      flex: flex,
-      child: Text(text, style: style),
-    );
-
-    return Row(
-      spacing: CascaSpacing.space2,
-      children: [
-        const SizedBox(width: _actionsSize),
-        column(_titleFlex, 'Variante'),
-        column(_skuFlex, 'SKU'),
-        column(_statusFlex, 'Estado'),
-        column(_priceFlex, 'Precio'),
-        column(_stockFlex, 'Stock'),
-        const SizedBox(width: _actionsSize),
-      ],
     );
   }
 }
@@ -290,9 +260,6 @@ class _Line extends StatelessWidget {
     final colors = context.casca;
     final textTheme = Theme.of(context).textTheme;
     final muted = textTheme.bodySmall?.copyWith(color: colors.textSecondary);
-    final titleStyle = textTheme.bodyMedium?.copyWith(
-      fontWeight: bold ? CascaFontWeight.semibold : CascaFontWeight.regular,
-    );
     final image = leading;
 
     final name = Row(
@@ -304,7 +271,7 @@ class _Line extends StatelessWidget {
             title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: titleStyle,
+            style: variantTitleStyle(context, bold: bold),
           ),
         ),
       ],
@@ -344,11 +311,7 @@ class _Line extends StatelessWidget {
             ],
           );
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: CascaSpacing.space2),
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: colors.border)),
-      ),
+    return VariantTableRow(
       child: Row(
         spacing: CascaSpacing.space2,
         children: [
