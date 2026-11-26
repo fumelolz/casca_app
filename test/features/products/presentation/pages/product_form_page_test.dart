@@ -11,6 +11,7 @@ import 'package:casca_app/features/products/presentation/pages/product_form_page
 import 'package:casca_app/features/products/presentation/widgets/product_form_fields.dart';
 import 'package:casca_app/shared/ui/casca_action_menu.dart';
 import 'package:casca_app/shared/ui/casca_barcode_scanner.dart';
+import 'package:casca_app/shared/ui/casca_select.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -234,10 +235,15 @@ Future<void> _tapText(WidgetTester tester, String text) async {
   await tester.pumpAndSettle();
 }
 
+Future<void> _openSelect(WidgetTester tester, String hint) async {
+  await tester.tap(find.widgetWithText(CascaSelect<String>, hint));
+  await tester.pumpAndSettle();
+}
+
 Future<void> _fillNewProduct(WidgetTester tester) async {
   await _fill(tester, 'Nombre', 'Arroz');
   await _fill(tester, 'Venta', '18.50');
-  await _tapText(tester, 'Selecciona una categoría');
+  await _openSelect(tester, 'Selecciona una categoría');
   await _tapText(tester, 'Abarrotes › Latas');
 }
 
@@ -471,7 +477,7 @@ void main() {
       final server = _Server();
       await _pump(tester, server);
       await _fill(tester, 'Nombre', 'Playera');
-      await _tapText(tester, 'Selecciona una categoría');
+      await _openSelect(tester, 'Selecciona una categoría');
       await _tapText(tester, 'Abarrotes › Latas');
       await addOption(tester, 'Añadir opciones', 'Talla', ['CH', 'M']);
       await type(tester, 'variant-price-CH', '100');
@@ -516,7 +522,7 @@ void main() {
       final server = _Server();
       await _pump(tester, server);
       await _fill(tester, 'Nombre', 'Playera');
-      await _tapText(tester, 'Selecciona una categoría');
+      await _openSelect(tester, 'Selecciona una categoría');
       await _tapText(tester, 'Abarrotes › Latas');
       await addOption(tester, 'Añadir opciones', 'Talla', ['CH']);
       await type(tester, 'variant-stock-CH', '3');
@@ -662,7 +668,7 @@ void main() {
     testWidgets('agrega una variante con un valor nuevo', (tester) async {
       final server = await open(tester);
       await tapVisible(tester, find.text('Agregar variante'));
-      await _tapText(tester, 'Selecciona un valor');
+      await _openSelect(tester, 'Selecciona un valor');
       await _tapText(tester, 'Nuevo valor…');
       await _fill(tester, 'Nuevo valor de Talla', 'G');
       await _fill(tester, 'Precio de venta', '15');
@@ -679,7 +685,7 @@ void main() {
     testWidgets('no agrega una combinación que ya existe', (tester) async {
       final server = await open(tester);
       await tapVisible(tester, find.text('Agregar variante'));
-      await _tapText(tester, 'Selecciona un valor');
+      await _openSelect(tester, 'Selecciona un valor');
       await tester.tap(find.text('M').last);
       await tester.pumpAndSettle();
       await _fill(tester, 'Precio de venta', '15');

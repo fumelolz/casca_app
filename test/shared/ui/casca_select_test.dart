@@ -87,7 +87,7 @@ void main() {
     String? picked;
     await tester.pumpWidget(_Host(onChanged: (value) => picked = value));
 
-    await tester.tap(find.text('Selecciona el tipo de negocio'));
+    await tester.tap(find.byType(InputDecorator));
     await tester.pumpAndSettle();
     expect(find.text('Abarrotes y tienda'), findsOneWidget);
     expect(find.text('Otro'), findsOneWidget);
@@ -106,7 +106,7 @@ void main() {
     String? picked;
     await tester.pumpWidget(_Host(onChanged: (value) => picked = value));
 
-    await tester.tap(find.text('Selecciona el tipo de negocio'));
+    await tester.tap(find.byType(InputDecorator));
     await tester.pumpAndSettle();
     await tester.tapAt(const Offset(700, 500));
     await tester.pumpAndSettle();
@@ -142,7 +142,7 @@ void main() {
   testWidgets('Escape cierra el menú', (tester) async {
     await tester.pumpWidget(const _Host());
 
-    await tester.tap(find.text('Selecciona el tipo de negocio'));
+    await tester.tap(find.byType(InputDecorator));
     await tester.pumpAndSettle();
     expect(find.text('Otro'), findsOneWidget);
 
@@ -158,7 +158,7 @@ void main() {
     await tester.pumpWidget(const _Host());
     final trigger = tester.getRect(find.byType(InputDecorator));
 
-    await tester.tap(find.text('Selecciona el tipo de negocio'));
+    await tester.tap(find.byType(InputDecorator));
     await tester.pumpAndSettle();
     final option = tester.getRect(find.text('Abarrotes y tienda'));
 

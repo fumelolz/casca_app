@@ -219,7 +219,7 @@ void main() {
     expect(server.posts, isEmpty);
 
     await tester.enterText(find.byType(CascaInput), ' Plasticos Lupita ');
-    await _tap(tester, find.text('Selecciona un giro').first);
+    await _tap(tester, find.byWidgetPredicate((w) => w is CascaSelect));
     await _tap(tester, find.text('Otro').last);
     await _tap(tester, _button('Crear negocio'));
 
