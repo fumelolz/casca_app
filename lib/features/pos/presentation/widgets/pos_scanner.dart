@@ -5,21 +5,13 @@ import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/features/pos/presentation/providers/pos_cart_provider.dart';
 import 'package:casca_app/features/pos/presentation/widgets/pos_add_item.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
-import 'package:casca_app/shared/ui/casca_barcode_camera.dart';
+import 'package:casca_app/shared/ui/casca_barcode_scanner.dart';
 import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
-typedef BarcodeCameraBuilder = Widget Function(ValueChanged<String> onDetected);
-
 const Duration repeatDelay = Duration(seconds: 2);
-
-final barcodeCameraProvider = Provider<BarcodeCameraBuilder?>(
-  (ref) => cascaCameraScanSupported
-      ? (onDetected) => CascaBarcodeCamera(onDetected: onDetected)
-      : null,
-);
 
 class PosScanner extends ConsumerStatefulWidget {
   const PosScanner({super.key});

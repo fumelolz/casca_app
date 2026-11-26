@@ -20,6 +20,7 @@ import 'package:casca_app/features/products/presentation/widgets/product_form_fi
 import 'package:casca_app/features/products/presentation/widgets/product_form_skeleton.dart';
 import 'package:casca_app/features/products/presentation/widgets/product_photos_field.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
+import 'package:casca_app/shared/ui/casca_barcode_scanner.dart';
 import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_card.dart';
 import 'package:casca_app/shared/ui/casca_input.dart';
@@ -423,6 +424,12 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
                   hintText: 'Opcional',
                   enabled: !_isEdit,
                   maxLength: _maxBarcodeLength,
+                  action: cascaScanButton(
+                    context,
+                    ref,
+                    controller: _barcode,
+                    maxLength: _maxBarcodeLength,
+                  ),
                 ),
               ),
             ],

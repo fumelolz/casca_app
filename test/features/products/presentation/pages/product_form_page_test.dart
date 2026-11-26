@@ -10,6 +10,7 @@ import 'package:casca_app/features/products/data/product_endpoints.dart';
 import 'package:casca_app/features/products/presentation/pages/product_form_page.dart';
 import 'package:casca_app/features/products/presentation/widgets/product_form_fields.dart';
 import 'package:casca_app/shared/ui/casca_action_menu.dart';
+import 'package:casca_app/shared/ui/casca_barcode_scanner.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -176,6 +177,7 @@ Future<void> _pump(
   String? productId,
   double width = 1200,
   _FakePicker? picker,
+  String? scanned,
 }) async {
   tester.view.physicalSize = Size(width, 2600);
   tester.view.devicePixelRatio = 1;
@@ -204,6 +206,13 @@ Future<void> _pump(
       overrides: [
         apiClientProvider.overrideWithValue(ApiClient(dio, DefaultCookieJar())),
         photoPickerProvider.overrideWithValue(picker ?? _FakePicker()),
+        if (scanned != null)
+          barcodeCameraProvider.overrideWithValue(
+            (detect) => TextButton(
+              onPressed: () => detect(scanned),
+              child: const Text('leer'),
+            ),
+          ),
       ],
       child: MaterialApp.router(theme: CascaTheme.light, routerConfig: router),
     ),
@@ -266,6 +275,19 @@ void main() {
       expect(unit, containsPair('price', 18.5));
       expect(unit, containsPair('barcode', '750100'));
       expect(find.text('lista de productos'), findsOneWidget);
+    });
+
+    testWidgets('escanear escribe el código y cierra el lector', (
+      tester,
+    ) async {
+      await _pump(tester, _Server(), scanned: ' 750999 ');
+
+      await tester.tap(find.bySemanticsLabel('Escanear código de barras'));
+      await tester.pumpAndSettle();
+      await _tapText(tester, 'leer');
+
+      expect(find.text('leer'), findsNothing);
+      expect(find.text('750999'), findsOneWidget);
     });
 
     testWidgets('calcula la ganancia mientras se escribe', (tester) async {

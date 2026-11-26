@@ -5,6 +5,7 @@ import 'package:casca_app/core/network/api_client.dart';
 import 'package:casca_app/core/network/network_providers.dart';
 import 'package:casca_app/features/pos/presentation/pages/pos_page.dart';
 import 'package:casca_app/features/pos/presentation/widgets/pos_scanner.dart';
+import 'package:casca_app/shared/ui/casca_barcode_scanner.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

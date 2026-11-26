@@ -15,6 +15,7 @@ import 'package:casca_app/features/products/presentation/widgets/photo_source.da
 import 'package:casca_app/features/products/presentation/widgets/product_form_fields.dart';
 import 'package:casca_app/features/products/presentation/widgets/product_thumbnail.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
+import 'package:casca_app/shared/ui/casca_barcode_scanner.dart';
 import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_checkbox.dart';
 import 'package:casca_app/shared/ui/casca_input.dart';
@@ -415,6 +416,12 @@ class _VariantFormModalState extends ConsumerState<VariantFormModal> {
                 controller: _barcode,
                 hintText: 'Opcional',
                 maxLength: _maxBarcodeLength,
+                action: cascaScanButton(
+                  context,
+                  ref,
+                  controller: _barcode,
+                  maxLength: _maxBarcodeLength,
+                ),
               ),
             ),
             if (showsLimits)

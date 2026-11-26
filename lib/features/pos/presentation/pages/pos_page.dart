@@ -16,6 +16,7 @@ import 'package:casca_app/features/pos/presentation/widgets/pos_payment_modal.da
 import 'package:casca_app/features/pos/presentation/widgets/pos_product_grid.dart';
 import 'package:casca_app/features/pos/presentation/widgets/pos_success_modal.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
+import 'package:casca_app/shared/ui/casca_barcode_scanner.dart';
 import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_icon.dart';
 import 'package:casca_app/shared/ui/casca_input.dart';
