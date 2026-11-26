@@ -29,7 +29,11 @@ import '../../support/fake_auth_repository.dart';
 
 class _EmptyPosRepository implements PosRepository {
   @override
-  Future<PosCatalogPageModel> catalog(String search, int page) async {
+  Future<PosCatalogPageModel> catalog(
+    String search,
+    int page, {
+    String? priceListId,
+  }) async {
     return const PosCatalogPageModel(items: [], hasNextPage: false);
   }
 

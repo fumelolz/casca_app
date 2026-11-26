@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:casca_app/core/auth/auth_controller.dart';
 import 'package:casca_app/features/pos/data/models/pos_catalog_model.dart';
 import 'package:casca_app/features/pos/data/pos_repository.dart';
+import 'package:casca_app/features/pos/presentation/providers/pos_cart_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class PosCatalogState {
@@ -50,6 +51,10 @@ class PosCatalogController extends Notifier<PosCatalogState> {
   @override
   PosCatalogState build() {
     ref.watch(authControllerProvider.select((s) => s.session?.activeStore.id));
+    ref.listen(cartProvider.select((cart) => cart.priceListId), (_, _) {
+      state = state.copyWith(items: const []);
+      reload();
+    });
     ref.onDispose(() => _searchTimer?.cancel());
     Future.microtask(reload);
     return const PosCatalogState(loading: true);
@@ -79,7 +84,11 @@ class PosCatalogController extends Notifier<PosCatalogState> {
     try {
       final result = await ref
           .read(posRepositoryProvider)
-          .catalog(state.search, page);
+          .catalog(
+            state.search,
+            page,
+            priceListId: ref.read(cartProvider).priceListId,
+          );
       if (!ref.mounted || request != _request) return;
       state = state.copyWith(
         items: page == 1 ? result.items : [...state.items, ...result.items],

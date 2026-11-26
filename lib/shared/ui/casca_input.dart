@@ -8,6 +8,18 @@ const double _disabledOpacity = 0.7;
 const double _actionSize = 28;
 const double _actionIconSize = 18;
 
+class CascaInputButton {
+  const CascaInputButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String label;
+  final String icon;
+  final VoidCallback onPressed;
+}
+
 class CascaInput extends StatefulWidget {
   const CascaInput({
     super.key,
@@ -32,6 +44,8 @@ class CascaInput extends StatefulWidget {
     this.showErrorMessage = true,
     this.onChanged,
     this.onFieldSubmitted,
+    this.focusNode,
+    this.action,
   });
 
   final TextEditingController? controller;
@@ -55,6 +69,8 @@ class CascaInput extends StatefulWidget {
   final bool showErrorMessage;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onFieldSubmitted;
+  final FocusNode? focusNode;
+  final CascaInputButton? action;
 
   @override
   State<CascaInput> createState() => _CascaInputState();
@@ -121,6 +137,12 @@ class _CascaInputState extends State<CascaInput> {
           asset: _passwordVisible ? CascaIcons.eyeSlash : CascaIcons.eye,
           onPressed: widget.enabled ? _togglePasswordVisibility : null,
         ),
+      if (widget.action case final action?)
+        _InputAction(
+          label: action.label,
+          asset: action.icon,
+          onPressed: widget.enabled ? action.onPressed : null,
+        ),
     ];
 
     final suffixText = widget.suffixText;
@@ -138,6 +160,7 @@ class _CascaInputState extends State<CascaInput> {
 
     final field = TextField(
       controller: _controller,
+      focusNode: widget.focusNode,
       enabled: widget.enabled,
       readOnly: widget.readOnly,
       obscureText: widget.password && !_passwordVisible,

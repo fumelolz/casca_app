@@ -7,10 +7,11 @@ import 'package:casca_app/features/pos/domain/payment_rules.dart';
 import 'package:casca_app/features/pos/presentation/providers/pos_cart_provider.dart';
 import 'package:casca_app/features/pos/presentation/providers/pos_catalog_provider.dart';
 import 'package:casca_app/features/pos/presentation/providers/pos_sale_provider.dart';
+import 'package:casca_app/features/pos/presentation/widgets/pos_add_item.dart';
 import 'package:casca_app/features/pos/presentation/widgets/pos_cart_view.dart';
+import 'package:casca_app/features/pos/presentation/widgets/pos_scanner.dart';
 import 'package:casca_app/features/pos/presentation/widgets/pos_payment_modal.dart';
 import 'package:casca_app/features/pos/presentation/widgets/pos_product_grid.dart';
-import 'package:casca_app/features/pos/presentation/widgets/pos_quantity_modal.dart';
 import 'package:casca_app/features/pos/presentation/widgets/pos_success_modal.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
 import 'package:casca_app/shared/ui/casca_button.dart';
@@ -32,23 +33,43 @@ class PosPage extends ConsumerStatefulWidget {
 
 class _PosPageState extends ConsumerState<PosPage> {
   final _search = TextEditingController();
+  final _searchFocus = FocusNode();
+  String? _codeMessage;
 
   @override
   void dispose() {
     _search.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
-  Future<void> _add(PosCatalogItemModel item) async {
-    final cart = ref.read(cartProvider.notifier);
-    if (!item.allowsDecimalQuantity) return cart.add(item);
+  Future<void> _add(PosCatalogItemModel item) {
+    return addItemToCart(context, ref, item);
+  }
 
-    final quantity = await showCascaModal<double>(
-      context: context,
-      size: CascaModalSize.sm,
-      builder: (_) => PosQuantityModal(item: item),
+  Future<void> _submitCode(String text) async {
+    if (text.trim().isEmpty) return;
+    final outcome = await addCodeToCart(context, ref, text);
+    if (!mounted || outcome == null) return;
+
+    if (outcome.added) {
+      _search.clear();
+      ref.read(posCatalogProvider.notifier).setSearch('');
+      _searchFocus.requestFocus();
+    }
+    setState(
+      () => _codeMessage = outcome.added || outcome.notFound
+          ? null
+          : outcome.message,
     );
-    if (quantity != null && mounted) cart.add(item, quantity);
+  }
+
+  Future<void> _scan() {
+    return showDialog<void>(
+      context: context,
+      useSafeArea: false,
+      builder: (_) => const PosScanner(),
+    );
   }
 
   Future<void> _openCart() async {
@@ -88,6 +109,8 @@ class _PosPageState extends ConsumerState<PosPage> {
     final catalog = ref.watch(posCatalogProvider);
     final cart = ref.watch(cartProvider);
     final controller = ref.read(posCatalogProvider.notifier);
+    final canScan = ref.watch(barcodeCameraProvider) != null;
+    final codeMessage = _codeMessage;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -107,8 +130,28 @@ class _PosPageState extends ConsumerState<PosPage> {
                 iconStart: CascaIcons.magnifyingGlass,
                 clearable: true,
                 textInputAction: TextInputAction.search,
-                onChanged: controller.setSearch,
+                focusNode: _searchFocus,
+                onChanged: (text) {
+                  if (_codeMessage != null) {
+                    setState(() => _codeMessage = null);
+                  }
+                  controller.setSearch(text);
+                },
+                onFieldSubmitted: _submitCode,
+                action: canScan
+                    ? CascaInputButton(
+                        label: 'Escanear código de barras',
+                        icon: CascaIcons.barcode,
+                        onPressed: _scan,
+                      )
+                    : null,
               ),
+              if (codeMessage != null)
+                Text(
+                  codeMessage,
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: colors.danger),
+                ),
               if (!wide && cart.notice != null)
                 Text(
                   cart.notice!,

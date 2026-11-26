@@ -9,6 +9,7 @@ import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_input.dart';
 import 'package:casca_app/shared/ui/casca_modal.dart';
 import 'package:casca_app/shared/ui/casca_select.dart';
+import 'package:casca_app/shared/ui/casca_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -134,13 +135,15 @@ class _CategoryFormModalState extends ConsumerState<CategoryFormModal> {
             const SizedBox(height: CascaSpacing.space4),
             Text('Categoría padre', style: labelStyle),
             const SizedBox(height: CascaSpacing.space2),
-            CascaSelect<String>(
-              options: _parentOptions(parents.value ?? const []),
-              value: _parentId,
-              hintText: 'Selecciona una categoría padre',
-              enabled: !parents.isLoading,
-              onChanged: (value) => setState(() => _parentId = value),
-            ),
+            if (parents.isLoading && !parents.hasValue)
+              const CascaSkeleton(height: CascaSpacing.space8)
+            else
+              CascaSelect<String>(
+                options: _parentOptions(parents.value ?? const []),
+                value: _parentId,
+                hintText: 'Selecciona una categoría padre',
+                onChanged: (value) => setState(() => _parentId = value),
+              ),
             if (parents.hasError) ...[
               const SizedBox(height: CascaSpacing.space2),
               Text(

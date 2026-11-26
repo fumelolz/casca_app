@@ -6,11 +6,27 @@ import 'package:casca_app/features/pos/data/models/sale_model.dart';
 const int _quantityDecimals = 3;
 const int _amountDecimals = 2;
 
+const String publicPriceListId = '00000000-0000-0000-0000-000000000000';
+
+class LinePricing {
+  const LinePricing({this.customPrice, this.priceListId});
+
+  final double? customPrice;
+  final String? priceListId;
+}
+
 class CartLine {
-  const CartLine({required this.item, required this.quantity});
+  const CartLine({
+    required this.item,
+    required this.quantity,
+    this.customPrice,
+    this.priceListId,
+  });
 
   final PosCatalogItemModel item;
   final double quantity;
+  final double? customPrice;
+  final String? priceListId;
 
   String get key => cartKey(
     item.productId,
@@ -20,8 +36,29 @@ class CartLine {
   );
 
   CartLine withQuantity(double quantity) {
-    return CartLine(item: item, quantity: quantity);
+    return CartLine(
+      item: item,
+      quantity: quantity,
+      customPrice: customPrice,
+      priceListId: priceListId,
+    );
   }
+
+  CartLine withPricing(LinePricing pricing) {
+    return CartLine(
+      item: item,
+      quantity: quantity,
+      customPrice: pricing.customPrice,
+      priceListId: pricing.priceListId,
+    );
+  }
+}
+
+bool canTotalLocally(List<CartLine> lines, String? salePriceListId) {
+  return salePriceListId == null &&
+      lines.every(
+        (line) => line.priceListId == null && !line.item.fromPriceList,
+      );
 }
 
 String cartKey(
@@ -87,8 +124,11 @@ SalePreviewModel untaxedPreview(List<CartLine> lines) {
         productVariantId: line.item.productVariantId,
         sellableItemId: line.item.sellableItemId,
         type: line.item.type,
-        unitPrice: line.item.price,
-        lineTotal: estimateAmount(line.quantity, line.item.price),
+        unitPrice: line.customPrice ?? line.item.price,
+        lineTotal: estimateAmount(
+          line.quantity,
+          line.customPrice ?? line.item.price,
+        ),
       ),
   ];
   final total = roundTo(

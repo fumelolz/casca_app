@@ -6,18 +6,23 @@ import 'package:casca_app/features/pos/data/models/sale_model.dart';
 import 'package:casca_app/features/pos/domain/cart_rules.dart';
 import 'package:casca_app/features/pos/presentation/providers/pos_cart_provider.dart';
 import 'package:casca_app/features/pos/presentation/providers/pos_catalog_provider.dart';
+import 'package:casca_app/features/pos/presentation/providers/pos_price_list_provider.dart';
+import 'package:casca_app/features/pos/presentation/widgets/pos_price_list_field.dart';
+import 'package:casca_app/features/pos/presentation/widgets/pos_price_modal.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
+import 'package:casca_app/shared/ui/casca_action_menu.dart';
 import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_icon.dart';
-import 'package:casca_app/shared/ui/casca_input.dart';
+import 'package:casca_app/shared/ui/casca_modal.dart';
+import 'package:casca_app/shared/ui/casca_quantity_stepper.dart';
 import 'package:casca_app/shared/ui/casca_remote_image.dart';
-import 'package:flutter/services.dart';
+import 'package:casca_app/shared/ui/casca_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 const double _imageSize = 44;
-const double _stepSize = 44;
-const double _quantityWidth = 84;
+const double _menuSize = 44;
+const double _totalSkeletonWidth = 112;
 const int _ivaRated = 0;
 const int _ivaZero = 1;
 const int _ivaExempt = 2;
@@ -32,19 +37,11 @@ class PosCartLines extends ConsumerWidget {
     final colors = context.casca;
     final textTheme = Theme.of(context).textTheme;
     final cart = ref.watch(cartProvider);
-    final notice = cart.notice;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (notice != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: CascaSpacing.space2),
-            child: Text(
-              notice,
-              style: textTheme.bodySmall?.copyWith(color: colors.warning),
-            ),
-          ),
+        const PosPriceListField(),
         if (cart.lines.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: CascaSpacing.space7),
@@ -110,216 +107,194 @@ class _CartLineTile extends ConsumerWidget {
     ];
   }
 
+  Future<void> _changePrice(BuildContext context, WidgetRef ref) async {
+    final controller = ref.read(cartProvider.notifier);
+    final pricing = await showCascaModal<LinePricing>(
+      context: context,
+      size: CascaModalSize.sm,
+      builder: (_) => PosPriceModal(line: line),
+    );
+    if (pricing != null) controller.setLinePricing(line, pricing);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.casca;
     final textTheme = Theme.of(context).textTheme;
     final muted = textTheme.bodySmall?.copyWith(color: colors.textSecondary);
     final controller = ref.read(cartProvider.notifier);
-    final canIncrease = controller.canIncrease(line);
+    final lists = ref.watch(posPriceListsProvider).value ?? const [];
+    final canEditPrice = ref.watch(canCustomPriceProvider) || lists.isNotEmpty;
+    final salePriceListId = ref.watch(
+      cartProvider.select((cart) => cart.priceListId),
+    );
+    final priceListId = line.priceListId ?? salePriceListId;
+    final priceLabel = line.customPrice != null
+        ? 'Personalizado'
+        : priceListId == publicPriceListId
+        ? 'Público'
+        : lists.where((list) => list.id == priceListId).firstOrNull?.name;
     final name = line.item.displayName;
     final error = this.error;
     final total = preview?.lineTotal;
+    final unitPrice = preview?.unitPrice ?? line.customPrice ?? line.item.price;
+    final atStockLimit =
+        line.item.affectsInventory && !controller.canIncrease(line);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: CascaSpacing.space3),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: colors.border)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: CascaSpacing.space2,
+    final price = Text.rich(
+      TextSpan(
+        text: '${formatMoney(unitPrice)} c/u',
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: CascaSpacing.space3,
-            children: [
-              ClipRRect(
-                borderRadius: CascaRadius.sm,
-                child: SizedBox.square(
-                  dimension: _imageSize,
-                  child: ColoredBox(
-                    color: colors.backgroundHover,
-                    child: CascaRemoteImage(paths: line.item.thumbnailPaths),
-                  ),
-                ),
+          if (priceLabel != null)
+            TextSpan(
+              text: ' · $priceLabel',
+              style: TextStyle(
+                color: colors.info,
+                fontWeight: CascaFontWeight.medium,
               ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: CascaFontWeight.medium,
-                      ),
-                    ),
-                    Text(
-                      '${formatMoney(preview?.unitPrice ?? line.item.price)} c/u',
-                      style: muted,
-                    ),
-                    for (final tax in _taxes()) Text(tax, style: muted),
-                  ],
-                ),
-              ),
-              _IconAction(
-                label: 'Quitar $name',
-                icon: CascaIcons.trash,
-                onPressed: () => controller.remove(line),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              _IconAction(
-                label: 'Disminuir cantidad de $name',
-                icon: CascaIcons.minus,
-                onPressed: () => controller.decrease(line),
-              ),
-              SizedBox(
-                width: _quantityWidth,
-                child: _QuantityField(line: line),
-              ),
-              _IconAction(
-                label: 'Aumentar cantidad de $name',
-                icon: CascaIcons.plus,
-                onPressed: canIncrease ? () => controller.increase(line) : null,
-              ),
-              Expanded(
-                child: Text(
-                  total == null ? '--' : formatMoney(total),
-                  textAlign: TextAlign.end,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: CascaFontWeight.semibold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          if (error != null)
-            Text(
-              error,
-              style: textTheme.bodySmall?.copyWith(color: colors.danger),
             ),
         ],
       ),
+      style: muted,
     );
-  }
-}
 
-class _QuantityField extends ConsumerStatefulWidget {
-  const _QuantityField({required this.line});
-
-  final CartLine line;
-
-  @override
-  ConsumerState<_QuantityField> createState() => _QuantityFieldState();
-}
-
-class _QuantityFieldState extends ConsumerState<_QuantityField> {
-  late final _controller = TextEditingController(
-    text: _format(widget.line.quantity),
-  );
-  bool _focused = false;
-
-  static String _format(double quantity) {
-    return formatQuantity(quantity).replaceAll(',', '');
-  }
-
-  void _sync() {
-    final text = _format(widget.line.quantity);
-    if (_controller.text != text) _controller.text = text;
-  }
-
-  void _changed(String text) {
-    final quantity = double.tryParse(text);
-    if (quantity == null || quantity <= 0) return;
-    final controller = ref.read(cartProvider.notifier);
-    controller.setQuantity(widget.line, quantity);
-
-    for (final line in ref.read(cartProvider).lines) {
-      if (line.key == widget.line.key && line.quantity < quantity) {
-        _controller.text = _format(line.quantity);
-      }
-    }
-  }
-
-  @override
-  void didUpdateWidget(_QuantityField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (_focused) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && !_focused) _sync();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final decimals = widget.line.item.allowsDecimalQuantity;
-
-    return Focus(
-      canRequestFocus: false,
-      skipTraversal: true,
-      onFocusChange: (focused) {
-        _focused = focused;
-        if (!focused) _sync();
-      },
-      child: Semantics(
-        label: 'Cantidad de ${widget.line.item.displayName}',
-        child: CascaInput(
-          controller: _controller,
-          keyboardType: TextInputType.numberWithOptions(decimal: decimals),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(
-              RegExp(decimals ? r'[0-9.]' : r'[0-9]'),
-            ),
-          ],
-          onChanged: _changed,
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: CascaSpacing.space4),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: colors.border)),
       ),
-    );
-  }
-}
-
-class _IconAction extends StatelessWidget {
-  const _IconAction({
-    required this.label,
-    required this.icon,
-    required this.onPressed,
-  });
-
-  final String label;
-  final String icon;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.casca;
-
-    return Semantics(
-      button: true,
-      enabled: onPressed != null,
-      label: label,
-      excludeSemantics: true,
-      child: InkResponse(
-        onTap: onPressed,
-        radius: _stepSize / 2,
-        child: SizedBox.square(
-          dimension: _stepSize,
-          child: Center(
-            child: CascaIcon(
-              icon,
-              size: CascaSpacing.space4,
-              color: onPressed == null ? colors.border : colors.textSecondary,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: CascaSpacing.space3,
+        children: [
+          ClipRRect(
+            borderRadius: CascaRadius.sm,
+            child: SizedBox.square(
+              dimension: _imageSize,
+              child: ColoredBox(
+                color: colors.backgroundHover,
+                child: CascaRemoteImage(paths: line.item.thumbnailPaths),
+              ),
             ),
           ),
-        ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: CascaSpacing.space3,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: CascaSpacing.space1,
+                        children: [
+                          Text(
+                            name,
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontWeight: CascaFontWeight.medium,
+                            ),
+                          ),
+                          if (canEditPrice)
+                            Semantics(
+                              button: true,
+                              label: 'Cambiar precio de $name',
+                              value: [
+                                '${formatMoney(unitPrice)} por unidad',
+                                ?priceLabel,
+                              ].join(', '),
+                              onTap: () => _changePrice(context, ref),
+                              excludeSemantics: true,
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.click,
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => _changePrice(context, ref),
+                                  child: price,
+                                ),
+                              ),
+                            )
+                          else
+                            price,
+                          for (final tax in _taxes()) Text(tax, style: muted),
+                        ],
+                      ),
+                    ),
+                    CascaActionMenu(
+                      semanticLabel: 'Acciones de $name',
+                      sections: [
+                        CascaActionMenuSection(
+                          items: [
+                            if (canEditPrice)
+                              CascaActionMenuItem(
+                                id: 'price',
+                                label: 'Cambiar precio',
+                                icon: CascaIcons.pencilSimple,
+                                onSelected: () => _changePrice(context, ref),
+                              ),
+                            CascaActionMenuItem(
+                              id: 'remove',
+                              label: 'Quitar',
+                              icon: CascaIcons.trash,
+                              danger: true,
+                              onSelected: () => controller.remove(line),
+                            ),
+                          ],
+                        ),
+                      ],
+                      child: SizedBox.square(
+                        dimension: _menuSize,
+                        child: Center(
+                          child: CascaIcon(
+                            CascaIcons.dotsThree,
+                            size: CascaSpacing.space5,
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  spacing: CascaSpacing.space3,
+                  children: [
+                    CascaQuantityStepper(
+                      value: line.quantity,
+                      subject: name,
+                      decimals: line.item.allowsDecimalQuantity,
+                      removesOnDecrease: line.quantity <= 1,
+                      onChanged: (typed) => controller.type(line, typed),
+                      onDecrease: () => controller.decrease(line),
+                      onIncrease: controller.canIncrease(line)
+                          ? () => controller.increase(line)
+                          : null,
+                    ),
+                    Expanded(
+                      child: Text(
+                        total == null ? '--' : formatMoney(total),
+                        textAlign: TextAlign.end,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: CascaFontWeight.semibold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (atStockLimit)
+                  Text(
+                    'Máximo disponible',
+                    style: textTheme.bodySmall?.copyWith(color: colors.warning),
+                  ),
+                if (error != null)
+                  Text(
+                    error,
+                    style: textTheme.bodySmall?.copyWith(color: colors.danger),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -361,7 +336,19 @@ class PosCartFooter extends ConsumerWidget {
       spacing: CascaSpacing.space2,
       children: [
         if (cart.calculating)
-          Text('Calculando total...', style: textTheme.bodySmall),
+          Semantics(
+            label: 'Calculando total',
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Total', style: textTheme.titleLarge),
+                const CascaSkeleton(
+                  width: _totalSkeletonWidth,
+                  height: CascaSpacing.space6,
+                ),
+              ],
+            ),
+          ),
         if (cart.previewError != null) ...[
           Text(
             'No fue posible calcular el total.',

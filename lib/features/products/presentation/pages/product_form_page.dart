@@ -24,6 +24,7 @@ import 'package:casca_app/shared/ui/casca_button.dart';
 import 'package:casca_app/shared/ui/casca_card.dart';
 import 'package:casca_app/shared/ui/casca_input.dart';
 import 'package:casca_app/shared/ui/casca_segmented_control.dart';
+import 'package:casca_app/shared/ui/casca_skeleton.dart';
 import 'package:casca_app/shared/ui/casca_select.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -272,7 +273,10 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
     if (uploaded && mounted) context.go(AppRoutes.products);
   }
 
-  Widget _informationCard(List<CategoryModel> categories, bool loadFailed) {
+  Widget _informationCard(AsyncValue<List<CategoryModel>> options) {
+    final categories = options.value ?? const <CategoryModel>[];
+    final loading = options.isLoading && !options.hasValue;
+    final loadFailed = options.hasError;
     final colors = context.casca;
     final errorStyle = Theme.of(context).textTheme.bodySmall
         ?.copyWith(color: colors.danger);
@@ -311,28 +315,31 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              CascaSelect<String>(
-                options: [
-                  if (current?.categoryId != null && !currentListed)
-                    CascaSelectOption(
-                      value: current!.categoryId!,
-                      label: current.categoryName ?? 'Categoría actual',
-                    ),
-                  for (final category in categories)
-                    CascaSelectOption(
-                      value: category.id,
-                      label: category.parentCategoryName == null
-                          ? category.name
-                          : '${category.parentCategoryName} › ${category.name}',
-                    ),
-                ],
-                value: _categoryId,
-                hintText: 'Selecciona una categoría',
-                onChanged: (id) => setState(() {
-                  _categoryId = id;
-                  _categoryMissing = false;
-                }),
-              ),
+              if (loading)
+                const CascaSkeleton(height: CascaSpacing.space8)
+              else
+                CascaSelect<String>(
+                  options: [
+                    if (current?.categoryId != null && !currentListed)
+                      CascaSelectOption(
+                        value: current!.categoryId!,
+                        label: current.categoryName ?? 'Categoría actual',
+                      ),
+                    for (final category in categories)
+                      CascaSelectOption(
+                        value: category.id,
+                        label: category.parentCategoryName == null
+                            ? category.name
+                            : '${category.parentCategoryName} › ${category.name}',
+                      ),
+                  ],
+                  value: _categoryId,
+                  hintText: 'Selecciona una categoría',
+                  onChanged: (id) => setState(() {
+                    _categoryId = id;
+                    _categoryMissing = false;
+                  }),
+                ),
               if (_categoryMissing)
                 Text('Selecciona una categoría', style: errorStyle),
               if (loadFailed)
@@ -494,10 +501,7 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
     }
     final showInventory = !_isService && !_hasVariants && !usesVariants;
 
-    final information = _informationCard(
-      categories.value ?? const [],
-      categories.hasError,
-    );
+    final information = _informationCard(categories);
     final price = usesVariants || _hasVariants ? null : _priceCard();
     final managedId = _isService ? null : _current?.id;
     final inventory = showInventory ? _inventoryCard() : null;

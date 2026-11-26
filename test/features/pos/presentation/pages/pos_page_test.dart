@@ -4,6 +4,7 @@ import 'package:casca_app/core/auth/auth_repository.dart';
 import 'package:casca_app/core/network/api_client.dart';
 import 'package:casca_app/core/network/network_providers.dart';
 import 'package:casca_app/features/pos/presentation/pages/pos_page.dart';
+import 'package:casca_app/features/pos/presentation/widgets/pos_scanner.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,6 +35,17 @@ Map<String, dynamic> _product(
   'affectsInventory': true,
   'image': null,
 };
+
+Map<String, dynamic> _previewLine(Map item, String? salePriceListId) {
+  final listId = item['priceListId'] ?? salePriceListId;
+  final price = item['customPrice'] as num? ?? (listId == 'l1' ? 80 : 100);
+
+  return {
+    ...item.cast<String, dynamic>(),
+    'unitPrice': price,
+    'lineTotal': (item['quantity'] as num) * price,
+  };
+}
 
 class _Server {
   bool shiftOpen = true;
@@ -74,24 +86,31 @@ class _Server {
       }, 200);
     }
     if (path.endsWith('/sales/preview')) {
-      final items = (options.data as Map)['items'] as List;
-      final total = items.fold<double>(
+      final body = options.data as Map;
+      final lines = [
+        for (final item in body['items'] as List)
+          _previewLine(item as Map, body['priceListId'] as String?),
+      ];
+      final total = lines.fold<num>(
         0,
-        (sum, item) => sum + ((item as Map)['quantity'] as num) * 100,
+        (sum, line) => sum + (line['lineTotal'] as num),
       );
       return jsonResponse({
-        'data': {
-          'items': [
-            for (final item in items)
-              {
-                ...(item as Map).cast<String, dynamic>(),
-                'unitPrice': 100,
-                'lineTotal': (item['quantity'] as num) * 100,
-              },
-          ],
-          'subtotal': total,
-          'finalTotal': total,
-        },
+        'data': {'items': lines, 'subtotal': total, 'finalTotal': total},
+      }, 200);
+    }
+    if (path.endsWith('/pos/catalog/exact')) {
+      return switch (options.queryParameters['value']) {
+        '750' => jsonResponse({'data': _product('a', 'Playera')}, 200),
+        '751' => jsonResponse({'data': _product('b', 'Gorra', stock: 0)}, 200),
+        _ => jsonResponse({'message': 'Producto no encontrado'}, 404),
+      };
+    }
+    if (path.endsWith('/price-lists')) {
+      return jsonResponse({
+        'data': [
+          {'id': 'l1', 'name': 'Mayorista'},
+        ],
       }, 200);
     }
     if (failedSales > 0) {
@@ -108,6 +127,8 @@ Future<void> _pump(
   WidgetTester tester,
   _Server server, {
   double width = 1200,
+  List<String> extraPermissions = const [],
+  void Function(ValueChanged<String> detect)? onCamera,
 }) async {
   tester.view.physicalSize = Size(width, 1600);
   tester.view.devicePixelRatio = 1;
@@ -118,9 +139,18 @@ Future<void> _pump(
   final container = ProviderContainer(
     overrides: [
       authRepositoryProvider.overrideWithValue(
-        FakeAuthRepository(hasSession: true, session: fullAccessSession()),
+        FakeAuthRepository(
+          hasSession: true,
+          session: fullAccessSession(
+            permissions: [...allPermissions, ...extraPermissions],
+          ),
+        ),
       ),
       apiClientProvider.overrideWithValue(ApiClient(dio, DefaultCookieJar())),
+      barcodeCameraProvider.overrideWithValue((detect) {
+        onCamera?.call(detect);
+        return const Text('cámara');
+      }),
     ],
   );
   addTearDown(container.dispose);
@@ -180,8 +210,44 @@ void main() {
       await _tap(tester, _card('a'));
     }
 
-    expect(find.textContaining('Solo hay 5 disponible'), findsOneWidget);
+    expect(find.text('Máximo disponible'), findsOneWidget);
     expect(find.text('Cobrar \$500.00'), findsOneWidget);
+  });
+
+  testWidgets('con una pieza el menos se vuelve quitar', (tester) async {
+    await _pump(tester, _Server());
+    await _tap(tester, _card('a'));
+    await _tap(tester, _card('a'));
+
+    await _tap(tester, find.bySemanticsLabel('Disminuir cantidad de Playera'));
+    await _tap(tester, find.bySemanticsLabel('Quitar Playera'));
+
+    expect(find.text('Tu venta está vacía'), findsOneWidget);
+  });
+
+  testWidgets('la cantidad escrita se limita a las existencias', (
+    tester,
+  ) async {
+    await _pump(tester, _Server());
+    await _tap(tester, _card('a'));
+    final field = find.byType(TextField).last;
+
+    await tester.enterText(field, '9');
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<TextField>(field).controller!.text, '5');
+    expect(find.text('Cobrar \$500.00'), findsOneWidget);
+  });
+
+  testWidgets('quita un producto desde su menú', (tester) async {
+    await _pump(tester, _Server());
+    await _tap(tester, _card('a'));
+    await _tap(tester, _card('a'));
+
+    await _tap(tester, find.bySemanticsLabel('Acciones de Playera'));
+    await _tap(tester, find.text('Quitar'));
+
+    expect(find.text('Tu venta está vacía'), findsOneWidget);
   });
 
   testWidgets('pide la cantidad de un producto a granel', (tester) async {
@@ -266,6 +332,171 @@ void main() {
       {'method': 0, 'amount': 60, 'cashReceived': 60},
       {'method': 3, 'amount': 40},
     ]);
+  });
+
+  group('códigos', () {
+    Future<void> submit(WidgetTester tester, String code) async {
+      await tester.enterText(find.byType(TextField).first, code);
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pumpAndSettle(const Duration(milliseconds: 400));
+    }
+
+    testWidgets('Enter agrega el producto y limpia el buscador', (
+      tester,
+    ) async {
+      await _pump(tester, _Server());
+
+      await submit(tester, '750');
+
+      expect(find.text('Cobrar \$100.00'), findsOneWidget);
+      final search = tester.widget<TextField>(find.byType(TextField).first);
+      expect(search.controller!.text, isEmpty);
+      expect(search.focusNode!.hasFocus, isTrue);
+    });
+
+    testWidgets('Enter con un producto agotado lo avisa', (tester) async {
+      await _pump(tester, _Server());
+
+      await submit(tester, '751');
+
+      expect(find.text('Gorra está agotado.'), findsOneWidget);
+    });
+
+    testWidgets('la cámara agrega sin repetir la misma lectura', (
+      tester,
+    ) async {
+      late ValueChanged<String> detect;
+      await _pump(tester, _Server(), onCamera: (value) => detect = value);
+      await _tap(tester, find.bySemanticsLabel('Escanear código de barras'));
+
+      detect('750');
+      await tester.pump(const Duration(milliseconds: 100));
+      detect('750');
+      await tester.pumpAndSettle(const Duration(milliseconds: 400));
+
+      expect(find.text('Agregado: Playera'), findsOneWidget);
+      expect(find.text('1 producto · \$100.00'), findsOneWidget);
+
+      await tester.pump(repeatDelay);
+      detect('750');
+      await tester.pumpAndSettle(const Duration(milliseconds: 400));
+      expect(find.text('1 producto · \$200.00'), findsOneWidget);
+      await tester.pump(repeatDelay);
+    });
+
+    testWidgets('la cámara avisa si el código no existe', (tester) async {
+      late ValueChanged<String> detect;
+      await _pump(
+        tester,
+        _Server(),
+        width: 360,
+        onCamera: (value) => detect = value,
+      );
+      await _tap(tester, find.bySemanticsLabel('Escanear código de barras'));
+
+      detect('999');
+      await tester.pumpAndSettle(const Duration(milliseconds: 400));
+
+      expect(
+        find.text('No hay un producto con el código 999.'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pump(repeatDelay);
+    });
+  });
+
+  group('precios', () {
+    const permissions = ['sale.applypricelist', 'sale.customprice'];
+
+    Future<void> openPrice(WidgetTester tester) {
+      return _tap(tester, find.bySemanticsLabel('Cambiar precio de Playera'));
+    }
+
+    testWidgets('la lista de la venta cambia catálogo, total y cobro', (
+      tester,
+    ) async {
+      final server = _Server();
+      await _pump(tester, server, extraPermissions: permissions);
+      await _tap(tester, _card('a'));
+
+      await _tap(tester, find.text('Público'));
+      await _tap(tester, find.text('Mayorista'));
+      await _tap(tester, find.text('Cambiar lista'));
+
+      expect(find.text('Cobrar \$80.00'), findsOneWidget);
+      expect(
+        server.sent('/api/v1/pos/catalog').last.queryParameters['priceListId'],
+        'l1',
+      );
+
+      await _tap(tester, find.text('Cobrar \$80.00'));
+      await _tap(tester, find.text('Transferencia'));
+      await _tap(tester, find.text('Cobrar \$80.00').last);
+
+      final sale = server.sent('/api/v1/sales').single.data as Map;
+      expect(sale['priceListId'], 'l1');
+      await _tap(tester, find.text('Nueva venta'));
+      expect(find.text('Público'), findsOneWidget);
+    });
+
+    testWidgets('un producto puede usar su propia lista', (tester) async {
+      final server = _Server();
+      await _pump(tester, server, extraPermissions: permissions);
+      await _tap(tester, _card('a'));
+
+      await openPrice(tester);
+      await _tap(tester, find.text('Público').last);
+      await _tap(tester, find.text('Mayorista').last);
+      expect(find.text('\$80.00'), findsOneWidget);
+      await _tap(tester, find.text('Aplicar'));
+
+      expect(find.text('Cobrar \$80.00'), findsOneWidget);
+      expect(find.textContaining('· Mayorista'), findsOneWidget);
+      final preview = server.sent('/api/v1/sales/preview').last.data as Map;
+      expect(preview['priceListId'], isNull);
+      expect(
+        (preview['items'] as List).single,
+        containsPair('priceListId', 'l1'),
+      );
+    });
+
+    testWidgets('el precio personalizado se conserva al agregar otro', (
+      tester,
+    ) async {
+      final server = _Server();
+      await _pump(tester, server, extraPermissions: permissions);
+      await _tap(tester, _card('a'));
+
+      await openPrice(tester);
+      await tester.enterText(find.byType(TextField).last, '70');
+      await _tap(tester, find.text('Aplicar'));
+      await _tap(tester, _card('a'));
+
+      expect(find.textContaining('· Personalizado'), findsOneWidget);
+      expect(find.text('Cobrar \$140.00'), findsOneWidget);
+    });
+
+    testWidgets('sin permisos no permite cambiar precios', (tester) async {
+      final server = _Server();
+      await _pump(tester, server);
+      await _tap(tester, _card('a'));
+
+      expect(find.bySemanticsLabel('Cambiar precio de Playera'), findsNothing);
+      expect(find.text('Lista de precios'), findsNothing);
+      expect(server.sent('/api/v1/price-lists'), isEmpty);
+    });
+
+    testWidgets('en teléfono cambia el precio desde la venta', (tester) async {
+      await _pump(tester, _Server(), width: 360, extraPermissions: permissions);
+      await _tap(tester, _card('a'));
+      await _tap(tester, find.textContaining('Ver venta'));
+
+      await openPrice(tester);
+
+      expect(find.text('Precio del producto'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 
   testWidgets('en teléfono abre la venta y cobra sin desbordar', (

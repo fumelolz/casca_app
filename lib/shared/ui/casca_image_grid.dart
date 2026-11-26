@@ -117,6 +117,13 @@ class _Mosaic extends StatelessWidget {
         large: true,
       );
     }
+    if (grid.loading) {
+      return CascaSkeleton(
+        width: size,
+        height: size,
+        borderRadius: CascaRadius.md,
+      );
+    }
     return _AddTile(
       width: size,
       height: size,
@@ -258,6 +265,13 @@ class _CarouselState extends State<_Carousel> {
     final items = _itemsOf(grid);
 
     if (items.isEmpty) {
+      if (grid.loading) {
+        return const CascaSkeleton(
+          width: double.infinity,
+          height: _emptyViewerHeight,
+          borderRadius: CascaRadius.md,
+        );
+      }
       return _AddTile(
         width: double.infinity,
         height: _emptyViewerHeight,

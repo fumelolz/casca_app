@@ -12,19 +12,23 @@ Map<String, dynamic> _itemRequest(CartLine line) {
     'sellableItemId': line.item.sellableItemId,
     'type': line.item.type,
     'quantity': line.quantity,
-    'customPrice': null,
-    'priceListId': null,
+    'customPrice': line.customPrice,
+    'priceListId': line.priceListId,
   };
 }
 
-Map<String, dynamic> previewRequest(List<CartLine> lines) {
+Map<String, dynamic> previewRequest(List<CartLine> lines, String? priceListId) {
   return {
     'items': [for (final line in lines) _itemRequest(line)],
-    'priceListId': null,
+    'priceListId': priceListId,
   };
 }
 
-Map<String, dynamic> saleRequest(List<CartLine> lines, Payment payment) {
+Map<String, dynamic> saleRequest(
+  List<CartLine> lines,
+  Payment payment, {
+  String? priceListId,
+}) {
   return {
     'customerId': null,
     'payments': [
@@ -38,7 +42,7 @@ Map<String, dynamic> saleRequest(List<CartLine> lines, Payment payment) {
     ],
     'notes': '',
     'items': [for (final line in lines) _itemRequest(line)],
-    'priceListId': null,
+    'priceListId': priceListId,
   };
 }
 

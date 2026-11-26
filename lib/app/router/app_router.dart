@@ -15,6 +15,8 @@ import 'package:casca_app/features/auth/presentation/pages/register_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/set_password_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/splash_page.dart';
 import 'package:casca_app/features/pos/presentation/pages/pos_page.dart';
+import 'package:casca_app/features/price_lists/presentation/pages/price_list_detail_page.dart';
+import 'package:casca_app/features/price_lists/presentation/pages/price_list_page.dart';
 import 'package:casca_app/features/products/presentation/pages/category_list_page.dart';
 import 'package:casca_app/features/products/presentation/pages/product_form_page.dart';
 import 'package:casca_app/features/products/presentation/pages/product_list_page.dart';
@@ -33,6 +35,7 @@ final _placeholderRoutes = allNavigationRoutes
       (item) =>
           item.route != AppRoutes.home &&
           item.route != AppRoutes.pos &&
+          item.route != AppRoutes.priceLists &&
           item.route != AppRoutes.products &&
           item.route != AppRoutes.stores &&
           item.route != AppRoutes.appearance &&
@@ -87,6 +90,21 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.pos,
             pageBuilder: (context, state) => shellPage(state, const PosPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.priceLists,
+            pageBuilder: (context, state) =>
+                shellPage(state, const PriceListPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.priceListDetail,
+            onExit: confirmDiscard(ref),
+            pageBuilder: (context, state) => shellPage(
+              state,
+              PriceListDetailPage(
+                priceListId: state.pathParameters['priceListId']!,
+              ),
+            ),
           ),
           GoRoute(
             path: AppRoutes.preferences,

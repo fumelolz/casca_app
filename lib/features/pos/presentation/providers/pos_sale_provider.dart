@@ -35,10 +35,11 @@ class SaleController extends Notifier<SaleState> {
   }
 
   Future<void> submit(Payment payment) async {
-    final lines = ref.read(cartProvider).lines;
+    final cart = ref.read(cartProvider);
+    final lines = cart.lines;
     if (state.submitting || lines.isEmpty) return;
 
-    final request = saleRequest(lines, payment);
+    final request = saleRequest(lines, payment, priceListId: cart.priceListId);
     final attempt = jsonEncode(request);
     if (attempt != _attempt) {
       _attempt = attempt;
@@ -51,7 +52,7 @@ class SaleController extends Notifier<SaleState> {
           .read(posRepositoryProvider)
           .createSale(request, idempotencyKey: _attemptKey!);
       _attempt = null;
-      ref.read(cartProvider.notifier).clear();
+      ref.read(cartProvider.notifier).finishSale();
       state = SaleState(
         completed: CompletedSale(sale: sale, payment: payment),
       );

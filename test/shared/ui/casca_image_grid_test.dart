@@ -1,6 +1,7 @@
 import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/shared/ui/casca_action_menu.dart';
 import 'package:casca_app/shared/ui/casca_image_grid.dart';
+import 'package:casca_app/shared/ui/casca_skeleton.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -76,6 +77,17 @@ void main() {
       expect(find.byKey(ValueKey('image-slot-empty-$index')), findsOneWidget);
     }
   });
+
+  for (final width in [390.0, 1000.0]) {
+    testWidgets('mientras carga no invita a agregar la foto ($width)', (
+      tester,
+    ) async {
+      await _pump(tester, ids: [], loading: true, width: width);
+
+      expect(find.text('Agregar foto'), findsNothing);
+      expect(find.byType(CascaSkeleton), findsWidgets);
+    });
+  }
 
   testWidgets('en el ancho intermedio no desborda', (tester) async {
     await _pump(tester, width: 480 + 300);

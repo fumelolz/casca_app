@@ -4,6 +4,7 @@ import 'package:casca_app/features/pos/domain/cart_rules.dart';
 import 'package:casca_app/features/pos/domain/payment_rules.dart';
 import 'package:casca_app/features/pos/domain/sale_error_rules.dart';
 import 'package:casca_app/features/pos/domain/sale_request.dart';
+import 'package:casca_app/features/pos/domain/scan_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 PosCatalogItemModel _item({
@@ -60,10 +61,26 @@ void main() {
       expect(preview.finalTotal, 0.3);
     });
 
+    test('con una lista de precios el total lo calcula el servidor', () {
+      final lines = [CartLine(item: _item(), quantity: 1)];
+      final priced = lines.single.withPricing(
+        const LinePricing(priceListId: 'l1'),
+      );
+
+      expect(canTotalLocally(lines, null), isTrue);
+      expect(canTotalLocally(lines, 'l1'), isFalse);
+      expect(canTotalLocally([priced], null), isFalse);
+    });
+
     test('calcula la cantidad a partir del importe', () {
       expect(quantityForAmount(10, 30), 0.333);
       expect(quantityForAmount(10, 0), isNull);
     });
+  });
+
+  test('corrige el separador de un SKU mal leído por el lector', () {
+    expect(normalizeScannedCode(" prd'1a2b3c "), 'PRD-1A2B3C');
+    expect(normalizeScannedCode('7501234567890'), '7501234567890');
   });
 
   group('cobro', () {

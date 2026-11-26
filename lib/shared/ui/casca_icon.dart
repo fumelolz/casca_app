@@ -35,6 +35,7 @@ abstract final class CascaIcons {
   static const String bank = 'assets/icons/bank.svg';
   static const String arrowRight = 'assets/icons/arrow-right.svg';
   static const String shuffle = 'assets/icons/shuffle.svg';
+  static const String barcode = 'assets/icons/barcode.svg';
   static const String plus = 'assets/icons/plus.svg';
   static const String trash = 'assets/icons/trash.svg';
   static const String pencilSimple = 'assets/icons/pencil-simple.svg';

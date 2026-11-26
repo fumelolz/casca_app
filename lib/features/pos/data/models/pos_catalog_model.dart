@@ -14,9 +14,13 @@ class PosCatalogItemModel {
     this.productVariantId,
     this.imagePaths = const [],
     this.thumbnailPaths = const [],
+    this.fromPriceList = false,
   });
 
-  factory PosCatalogItemModel.fromJson(Map<String, dynamic> json) {
+  factory PosCatalogItemModel.fromJson(
+    Map<String, dynamic> json, {
+    bool fromPriceList = false,
+  }) {
     final image = json['image'] as Map<String, dynamic>?;
     List<String> paths(List<String> keys) => [
       for (final key in keys)
@@ -38,6 +42,7 @@ class PosCatalogItemModel {
       affectsInventory: json['affectsInventory'] as bool,
       imagePaths: paths(['webpMediumUrl', 'webpUrl', 'originalUrl']),
       thumbnailPaths: paths(['webpThumbnailUrl', 'thumbnailUrl', 'webpUrl']),
+      fromPriceList: fromPriceList,
     );
   }
 
@@ -55,16 +60,23 @@ class PosCatalogItemModel {
   final bool affectsInventory;
   final List<String> imagePaths;
   final List<String> thumbnailPaths;
+  final bool fromPriceList;
 }
 
 class PosCatalogPageModel {
   const PosCatalogPageModel({required this.items, required this.hasNextPage});
 
-  factory PosCatalogPageModel.fromJson(Map<String, dynamic> json) {
+  factory PosCatalogPageModel.fromJson(
+    Map<String, dynamic> json, {
+    bool fromPriceList = false,
+  }) {
     return PosCatalogPageModel(
       items: [
         for (final item in json['items'] as List<Object?>)
-          PosCatalogItemModel.fromJson(item as Map<String, dynamic>),
+          PosCatalogItemModel.fromJson(
+            item as Map<String, dynamic>,
+            fromPriceList: fromPriceList,
+          ),
       ],
       hasNextPage: json['hasNextPage'] as bool,
     );

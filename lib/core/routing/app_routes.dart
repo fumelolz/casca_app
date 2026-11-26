@@ -16,13 +16,19 @@ abstract final class AppRoutes {
   static const appearance = '/appearance';
   static const cashRegisters = '/cash-register/registers';
 
+  static const priceLists = '/price-lists';
+  static const priceListDetail = '/price-lists/:priceListId';
+
   static const guestRoutes = {login, forgotPassword, setPassword, register};
+
+  static String priceListFor(String priceListId) => '$priceLists/$priceListId';
 
   static String productEditFor(String productId) => '/products/$productId/edit';
 
   static bool isFormRoute(String location) {
     return location == productNew ||
-        RegExp(r'^/products/[^/]+/edit$').hasMatch(location);
+        RegExp(r'^/products/[^/]+/edit$').hasMatch(location) ||
+        RegExp(r'^/price-lists/[^/]+$').hasMatch(location);
   }
 
   static String setPasswordFor({required String email}) {
