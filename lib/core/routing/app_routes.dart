@@ -14,6 +14,13 @@ abstract final class AppRoutes {
   static const productCategories = '/categories';
   static const stores = '/stores';
   static const appearance = '/appearance';
+  static const customers = '/customers';
+  static const employees = '/employees';
+  static const employeeDetail = '/employees/:employeeId';
+  static const roles = '/roles';
+  static const roleNew = '/roles/new';
+  static const roleDetail = '/roles/:roleId';
+  static const roleCopyParameter = 'copiarDe';
   static const printers = '/printers';
   static const printerTabParameter = 'tipo';
   static const labelPrinters = '$printers?$printerTabParameter=etiquetas';
@@ -43,6 +50,14 @@ abstract final class AppRoutes {
     ).toString();
   }
 
+  static String employeeFor(String employeeId) => '$employees/$employeeId';
+
+  static String roleFor(String roleId) => '$roles/$roleId';
+
+  static String roleCopyOf(String roleId) {
+    return '$roleNew?$roleCopyParameter=$roleId';
+  }
+
   static String priceListFor(String priceListId) => '$priceLists/$priceListId';
 
   static String productEditFor(String productId) => '/products/$productId/edit';
@@ -51,7 +66,8 @@ abstract final class AppRoutes {
     return location == productNew ||
         location == closeShift ||
         RegExp(r'^/products/[^/]+/edit$').hasMatch(location) ||
-        RegExp(r'^/price-lists/[^/]+$').hasMatch(location);
+        RegExp(r'^/price-lists/[^/]+$').hasMatch(location) ||
+        RegExp(r'^/roles/[^/]+$').hasMatch(location);
   }
 
   static String setPasswordFor({required String email}) {

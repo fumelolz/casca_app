@@ -14,6 +14,11 @@ import 'package:casca_app/features/cash_registers/presentation/pages/close_shift
 import 'package:casca_app/features/cash_registers/presentation/pages/current_shift_page.dart';
 import 'package:casca_app/features/cash_registers/presentation/pages/shift_detail_page.dart';
 import 'package:casca_app/features/cash_registers/presentation/pages/shift_history_page.dart';
+import 'package:casca_app/features/customers/presentation/pages/customer_list_page.dart';
+import 'package:casca_app/features/employees/presentation/pages/employee_detail_page.dart';
+import 'package:casca_app/features/employees/presentation/pages/employee_list_page.dart';
+import 'package:casca_app/features/roles/presentation/pages/role_editor_page.dart';
+import 'package:casca_app/features/roles/presentation/pages/role_list_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/login_page.dart';
 import 'package:casca_app/features/auth/presentation/pages/register_page.dart';
@@ -53,6 +58,9 @@ final _placeholderRoutes = allNavigationRoutes
           item.route != AppRoutes.stores &&
           item.route != AppRoutes.appearance &&
           item.route != AppRoutes.printers &&
+          item.route != AppRoutes.customers &&
+          item.route != AppRoutes.employees &&
+          item.route != AppRoutes.roles &&
           item.route != AppRoutes.cashRegisters &&
           item.route != AppRoutes.productCategories,
     )
@@ -193,6 +201,56 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.appearance,
             pageBuilder: (context, state) =>
                 shellPage(state, const AppearancePage()),
+          ),
+          GoRoute(
+            path: AppRoutes.employees,
+            pageBuilder: (context, state) =>
+                shellPage(state, const EmployeeListPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.employeeDetail,
+            pageBuilder: (context, state) => shellPage(
+              state,
+              EmployeeDetailPage(
+                employeeId: state.pathParameters['employeeId']!,
+              ),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.roles,
+            pageBuilder: (context, state) =>
+                shellPage(state, const RoleListPage()),
+          ),
+          GoRoute(
+            path: AppRoutes.roleNew,
+            onExit: confirmDiscard(ref),
+            pageBuilder: (context, state) {
+              final copyFrom =
+                  state.uri.queryParameters[AppRoutes.roleCopyParameter];
+              return shellPage(
+                state,
+                RoleEditorPage(
+                  key: ValueKey('nuevo-$copyFrom'),
+                  copyFrom: copyFrom,
+                ),
+              );
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.roleDetail,
+            onExit: confirmDiscard(ref),
+            pageBuilder: (context, state) {
+              final roleId = state.pathParameters['roleId']!;
+              return shellPage(
+                state,
+                RoleEditorPage(key: ValueKey(roleId), roleId: roleId),
+              );
+            },
+          ),
+          GoRoute(
+            path: AppRoutes.customers,
+            pageBuilder: (context, state) =>
+                shellPage(state, const CustomerListPage()),
           ),
           GoRoute(
             path: AppRoutes.printers,

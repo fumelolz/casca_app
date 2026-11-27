@@ -7,6 +7,7 @@ import 'package:casca_app/features/pos/domain/cart_rules.dart';
 import 'package:casca_app/features/pos/presentation/providers/pos_cart_provider.dart';
 import 'package:casca_app/features/pos/presentation/providers/pos_catalog_provider.dart';
 import 'package:casca_app/features/pos/presentation/providers/pos_price_list_provider.dart';
+import 'package:casca_app/features/pos/presentation/widgets/pos_customer_field.dart';
 import 'package:casca_app/features/pos/presentation/widgets/pos_price_list_field.dart';
 import 'package:casca_app/features/pos/presentation/widgets/pos_price_modal.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
@@ -41,6 +42,7 @@ class PosCartLines extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const PosCustomerField(),
         const PosPriceListField(),
         if (cart.lines.isEmpty)
           Padding(

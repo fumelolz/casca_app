@@ -6,6 +6,7 @@ import 'package:casca_app/features/pos/domain/payment_rules.dart';
 import 'package:casca_app/features/pos/domain/sale_error_rules.dart';
 import 'package:casca_app/features/pos/domain/sale_request.dart';
 import 'package:casca_app/features/pos/presentation/providers/pos_cart_provider.dart';
+import 'package:casca_app/features/pos/presentation/providers/pos_customer_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CompletedSale {
@@ -39,7 +40,12 @@ class SaleController extends Notifier<SaleState> {
     final lines = cart.lines;
     if (state.submitting || lines.isEmpty) return;
 
-    final request = saleRequest(lines, payment, priceListId: cart.priceListId);
+    final request = saleRequest(
+      lines,
+      payment,
+      priceListId: cart.priceListId,
+      customerId: ref.read(saleCustomerProvider)?.id,
+    );
     final attempt = jsonEncode(request);
     if (attempt != _attempt) {
       _attempt = attempt;
@@ -53,6 +59,7 @@ class SaleController extends Notifier<SaleState> {
           .createSale(request, idempotencyKey: _attemptKey!);
       _attempt = null;
       ref.read(cartProvider.notifier).finishSale();
+      ref.read(saleCustomerProvider.notifier).select(null);
       state = SaleState(
         completed: CompletedSale(sale: sale, payment: payment),
       );

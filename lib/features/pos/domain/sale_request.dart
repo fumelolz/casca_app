@@ -28,9 +28,10 @@ Map<String, dynamic> saleRequest(
   List<CartLine> lines,
   Payment payment, {
   String? priceListId,
+  String? customerId,
 }) {
   return {
-    'customerId': null,
+    'customerId': customerId,
     'payments': [
       for (final part in payment.lines)
         {

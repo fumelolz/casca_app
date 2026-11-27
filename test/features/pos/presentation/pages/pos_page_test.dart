@@ -107,6 +107,27 @@ class _Server {
         _ => jsonResponse({'message': 'Producto no encontrado'}, 404),
       };
     }
+    if (path.endsWith('/customers')) {
+      return jsonResponse({
+        'data': {
+          'items': [
+            {
+              'id': 'c1',
+              'firstName': 'Ana',
+              'lastName': 'López',
+              'phone': '5512345678',
+              'status': 'Confirmed',
+            },
+          ],
+          'page': 1,
+          'pageSize': 10,
+          'totalCount': 1,
+          'totalPages': 1,
+          'hasNextPage': false,
+          'hasPreviousPage': false,
+        },
+      }, 200);
+    }
     if (path.endsWith('/price-lists')) {
       return jsonResponse({
         'data': [
@@ -294,6 +315,29 @@ void main() {
 
     await _tap(tester, find.text('Nueva venta'));
     expect(find.text('Tu venta está vacía'), findsOneWidget);
+  });
+
+  testWidgets('cobra con el cliente elegido y vuelve a mostrador', (
+    tester,
+  ) async {
+    final server = _Server();
+    await _pump(tester, server);
+    await _tap(tester, _card('a'));
+
+    await _tap(tester, find.text('Elegir'));
+    await _tap(tester, find.text('Ana López'));
+    expect(find.text('Cambiar'), findsOneWidget);
+
+    await _tap(tester, find.text('Cobrar \$100.00'));
+    await tester.enterText(_paymentInput('Efectivo recibido'), '100');
+    await tester.pump();
+    await _tap(tester, find.text('Recibir'));
+
+    final sale = server.sent('/api/v1/sales').single;
+    expect((sale.data as Map)['customerId'], 'c1');
+
+    await _tap(tester, find.text('Nueva venta'));
+    expect(find.text('Venta mostrador'), findsOneWidget);
   });
 
   testWidgets('reintentar el mismo pago repite la clave', (tester) async {

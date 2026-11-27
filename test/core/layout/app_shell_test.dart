@@ -1,5 +1,8 @@
 import 'dart:ui';
 
+import 'package:casca_app/features/customers/presentation/pages/customer_list_page.dart';
+import 'package:casca_app/core/customers/customer_model.dart';
+import 'package:casca_app/core/customers/customer_repository.dart';
 import 'package:casca_app/features/home/data/dashboard_repository.dart';
 import 'package:casca_app/features/home/data/models/dashboard_summary_model.dart';
 import 'package:casca_app/features/home/domain/dashboard_rules.dart';
@@ -8,7 +11,6 @@ import 'package:casca_app/app/theme/casca_colors.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/core/auth/auth_repository.dart';
 import 'package:casca_app/core/auth/session_state.dart';
-import 'package:casca_app/app/router/module_placeholder_page.dart';
 import 'package:casca_app/core/layout/brand_lockup.dart';
 import 'package:casca_app/core/layout/mobile_bottom_bar.dart';
 import 'package:casca_app/core/layout/preferences_nav.dart';
@@ -107,6 +109,29 @@ class _EmptyPosRepository implements PosRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _EmptyCustomerRepository implements CustomerRepository {
+  @override
+  Future<PagedResponse<CustomerModel>> getCustomers({
+    required int page,
+    required int pageSize,
+    String search = '',
+    String? status,
+  }) async {
+    return const PagedResponse(
+      items: [],
+      page: 1,
+      pageSize: 10,
+      totalCount: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _EmptyDashboardRepository implements DashboardRepository {
   @override
   Future<DashboardSummaryModel> getSummary() async {
@@ -174,6 +199,9 @@ Future<void> _openApp(
         productRepositoryProvider.overrideWithValue(_EmptyProductRepository()),
         posRepositoryProvider.overrideWithValue(_EmptyPosRepository()),
         shiftRepositoryProvider.overrideWithValue(_EmptyShiftRepository()),
+        customerRepositoryProvider.overrideWithValue(
+          _EmptyCustomerRepository(),
+        ),
         dashboardRepositoryProvider.overrideWithValue(
           _EmptyDashboardRepository(),
         ),
@@ -496,13 +524,6 @@ void main() {
       );
     }
 
-    Finder inPage(String text) {
-      return find.descendant(
-        of: find.byType(ModulePlaceholderPage),
-        matching: find.text(text),
-      );
-    }
-
     group('menú lateral', () {
       testWidgets('está oculto y se abre con el botón de la barra', (
         tester,
@@ -536,7 +557,7 @@ void main() {
 
         await _tap(tester, _inSidebar('Clientes'));
 
-        expect(inPage('Clientes'), findsOneWidget);
+        expect(find.byType(CustomerListPage), findsOneWidget);
         expect(_isDrawerOpen(tester), isFalse);
       });
 
