@@ -25,11 +25,11 @@ void main() {
     expect(
       buildProductLabelZpl(_label, copies: 3),
       '^XA^CI28^MNY^MTD^PW408^LL200^LH0,0'
-      '^FO16,8^A0N,30,30^FB376,1,0,C^FDArroz^FS'
-      '^FO16,42^A0N,24,24^FB376,1,0,C^FDARR-1^FS'
-      '^FO16,70^A0N,34,34^FB376,1,0,C^FD\$1,234.50^FS'
-      '^FO136,108^BY2^BCN,54,N,N,N,N^FD>;750999^FS'
-      '^FO16,166^A0N,22,22^FB376,1,0,C^FD750999^FS'
+      '^FO16,10^A0N,30,30^FB376,1,0,C^FDArroz^FS'
+      '^FO16,44^A0N,24,24^FB376,1,0,C^FDARR-1^FS'
+      '^FO16,72^A0N,34,34^FB376,1,0,C^FD\$1,234.50^FS'
+      '^FO136,110^BY2^BCN,54,N,N,N,N^FD>;750999^FS'
+      '^FO16,168^A0N,22,22^FB376,1,0,C^FD750999^FS'
       '^PQ3^XZ',
     );
   });
@@ -48,7 +48,17 @@ void main() {
 
     expect(zpl, isNot(contains('Arroz')));
     expect(zpl, isNot(contains('^BC')));
-    expect(zpl, contains(r'^FD$1,234.50^FS'));
+    expect(zpl, contains(r'^FO16,83^A0N,34,34^FB376,1,0,C^FD$1,234.50^FS'));
+  });
+
+  test('centra verticalmente lo que queda al quitar datos', () {
+    final zpl = buildProductLabelZpl(
+      _label,
+      fields: {LabelField.name, LabelField.price},
+    );
+
+    expect(zpl, contains('^FO16,66^A0N,30,30'));
+    expect(zpl, contains('^FO16,100^A0N,34,34'));
   });
 
   test('limpia los comandos escritos en el nombre y limita las copias', () {

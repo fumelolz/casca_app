@@ -22,6 +22,8 @@ sealed class LabelElement {
   final int x;
   final int y;
   final int width;
+
+  LabelElement movedDown(int offset);
 }
 
 class LabelText extends LabelElement {
@@ -37,6 +39,16 @@ class LabelText extends LabelElement {
   final String text;
   final int font;
   final int lines;
+
+  @override
+  LabelText movedDown(int offset) => LabelText(
+    x: x,
+    y: y + offset,
+    width: width,
+    text: text,
+    font: font,
+    lines: lines,
+  );
 }
 
 class LabelBarcode extends LabelElement {
@@ -54,6 +66,17 @@ class LabelBarcode extends LabelElement {
   final int moduleWidth;
   final String data;
   final String text;
+
+  @override
+  LabelBarcode movedDown(int offset) => LabelBarcode(
+    x: x,
+    y: y + offset,
+    width: width,
+    height: height,
+    moduleWidth: moduleWidth,
+    data: data,
+    text: text,
+  );
 }
 
 class ProductLabelLayout {
@@ -84,8 +107,10 @@ ProductLabelLayout layoutProductLabel(
 
   final elements = <LabelElement>[];
   var y = _verticalMargin;
+  var bottom = y;
 
   void centeredText(String text, int font, {int lines = 1}) {
+    bottom = y + lines * font;
     elements.add(
       LabelText(
         x: _margin,
@@ -135,13 +160,20 @@ ProductLabelLayout layoutProductLabel(
         text: barcode.text,
       ),
     );
+    bottom = y + barHeight;
     if (showCode) {
       y += barHeight + _barcodeGap;
       centeredText(barcode.text, _codeFont);
     }
   }
 
-  return ProductLabelLayout(width: width, height: height, elements: elements);
+  final offset = max(0, (height - _verticalMargin - bottom) ~/ 2);
+
+  return ProductLabelLayout(
+    width: width,
+    height: height,
+    elements: [for (final element in elements) element.movedDown(offset)],
+  );
 }
 
 String _sanitize(String value) {
