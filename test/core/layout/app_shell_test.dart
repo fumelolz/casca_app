@@ -1,5 +1,8 @@
 import 'dart:ui';
 
+import 'package:casca_app/features/home/data/dashboard_repository.dart';
+import 'package:casca_app/features/home/data/models/dashboard_summary_model.dart';
+import 'package:casca_app/features/home/domain/dashboard_rules.dart';
 import 'package:casca_app/app/router/app_router.dart';
 import 'package:casca_app/app/theme/casca_colors.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
@@ -104,6 +107,23 @@ class _EmptyPosRepository implements PosRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _EmptyDashboardRepository implements DashboardRepository {
+  @override
+  Future<DashboardSummaryModel> getSummary() async {
+    return const DashboardSummaryModel(
+      todayTotal: 0,
+      todayOrders: 0,
+      averageTicket: 0,
+      yesterdayTotal: 0,
+      percentageChange: 0,
+      todayProfit: 0,
+    );
+  }
+
+  @override
+  Future<List<DashboardWidgetSetting>> getLayout() async => const [];
+}
+
 class _EmptyProductRepository implements ProductRepository {
   @override
   Future<PagedResponse<ProductListItemModel>> getProducts({
@@ -154,6 +174,9 @@ Future<void> _openApp(
         productRepositoryProvider.overrideWithValue(_EmptyProductRepository()),
         posRepositoryProvider.overrideWithValue(_EmptyPosRepository()),
         shiftRepositoryProvider.overrideWithValue(_EmptyShiftRepository()),
+        dashboardRepositoryProvider.overrideWithValue(
+          _EmptyDashboardRepository(),
+        ),
         currentShiftRepositoryProvider.overrideWithValue(
           _NoCurrentShiftRepository(),
         ),
