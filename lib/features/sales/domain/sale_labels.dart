@@ -1,4 +1,5 @@
 import 'package:casca_app/features/sales/data/models/sale_history_model.dart';
+import 'package:casca_app/shared/formatters/payment_labels.dart';
 
 const int cancelledSaleStatus = 1;
 
@@ -7,18 +8,6 @@ String saleStatusLabel(int status) {
     0 => 'Pagada',
     cancelledSaleStatus => 'Cancelada',
     _ => 'Desconocido',
-  };
-}
-
-String salePaymentMethodLabel(int method) {
-  return switch (method) {
-    0 => 'Efectivo',
-    1 => 'Transferencia',
-    2 => 'Cheque',
-    3 => 'Tarjeta de débito',
-    4 => 'Tarjeta de crédito',
-    5 => 'Puntos',
-    _ => '—',
   };
 }
 

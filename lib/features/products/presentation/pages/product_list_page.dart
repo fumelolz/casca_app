@@ -7,6 +7,7 @@ import 'package:casca_app/features/products/data/models/product_list_item_model.
 import 'package:casca_app/features/products/data/product_repository.dart';
 import 'package:casca_app/features/products/domain/product_list_rules.dart';
 import 'package:casca_app/features/products/presentation/providers/product_list_provider.dart';
+import 'package:casca_app/features/products/presentation/widgets/product_label_modal.dart';
 import 'package:casca_app/features/products/presentation/widgets/product_thumbnail.dart';
 import 'package:casca_app/features/products/presentation/widgets/stock_level_indicator.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
@@ -69,11 +70,22 @@ final _columns = <CascaTableColumn<ProductListItemModel>>[
   ),
 ];
 
-class ProductListPage extends ConsumerWidget {
+class ProductListPage extends ConsumerStatefulWidget {
   const ProductListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProductListPage> createState() => _ProductListPageState();
+}
+
+class _ProductListPageState extends ConsumerState<ProductListPage> {
+  Set<String> _selected = {};
+
+  void _select(Set<String> selected) {
+    if (mounted) setState(() => _selected = selected);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final query = ref.watch(productListQueryProvider);
     final products = ref.watch(productListProvider);
     final page = products.value;
@@ -107,6 +119,12 @@ class ProductListPage extends ConsumerWidget {
           CascaTable<ProductListItemModel>(
             columns: _columns,
             rowActions: [
+              CascaTableRowAction(
+                label: 'Imprimir etiquetas',
+                icon: CascaIcons.print,
+                onSelected: (product) =>
+                    showProductLabelModal(context, [product.id]),
+              ),
               if (canUpdate)
                 CascaTableRowAction(
                   label: 'Editar',
@@ -114,6 +132,24 @@ class ProductListPage extends ConsumerWidget {
                   onSelected: (product) =>
                       context.go(AppRoutes.productEditFor(product.id)),
                 ),
+            ],
+            selectedKeys: _selected,
+            onSelectionChanged: _select,
+            bulkActions: [
+              CascaTableBulkAction(
+                label: 'Imprimir',
+                icon: CascaIcons.print,
+                onPressed: () => showProductLabelModal(
+                  context,
+                  _selected.toList(),
+                  onPrinted: () => _select({}),
+                ),
+              ),
+              CascaTableBulkAction(
+                label: 'Quitar',
+                icon: CascaIcons.xmark,
+                onPressed: () => _select({}),
+              ),
             ],
             rows: page?.items ?? const [],
             rowKey: (product) => product.id,

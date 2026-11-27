@@ -5,6 +5,7 @@ class ProductDetailModel {
   const ProductDetailModel({
     required this.id,
     required this.name,
+    this.sku = '',
     required this.productType,
     required this.version,
     required this.ivaRate,
@@ -39,6 +40,7 @@ class ProductDetailModel {
     return ProductDetailModel(
       id: json['id'] as String,
       name: json['name'] as String,
+      sku: json['sku'] as String? ?? '',
       description: json['description'] as String?,
       categoryId: category?['id'] as String?,
       categoryName: category?['name'] as String?,
@@ -67,6 +69,7 @@ class ProductDetailModel {
 
   final String id;
   final String name;
+  final String sku;
   final String? description;
   final String? categoryId;
   final String? categoryName;

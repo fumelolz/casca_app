@@ -1,6 +1,7 @@
 import 'package:casca_app/app/theme/casca_spacing.dart';
 import 'package:casca_app/core/errors/api_error_message.dart';
 import 'package:casca_app/core/layout/page_padding.dart';
+import 'package:casca_app/core/printing/ticket_print_button.dart';
 import 'package:casca_app/core/routing/app_routes.dart';
 import 'package:casca_app/features/sales/presentation/providers/sales_providers.dart';
 import 'package:casca_app/features/sales/presentation/widgets/sale_detail_cards.dart';
@@ -97,6 +98,8 @@ class SaleDetailPage extends ConsumerWidget {
             ),
           ),
           SaleHeaderCard(sale: sale),
+          if (sale.ticket case final ticket?)
+            TicketPrintButton(sale: ticket, reprint: true),
           SaleItemsCard(sale: sale),
         ],
       ),

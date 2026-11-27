@@ -1,6 +1,7 @@
 import 'package:casca_app/app/theme/casca_spacing.dart';
 import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:casca_app/app/theme/casca_typography.dart';
+import 'package:casca_app/core/printing/ticket_print_button.dart';
 import 'package:casca_app/features/pos/presentation/providers/pos_sale_provider.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
 import 'package:casca_app/shared/ui/casca_button.dart';
@@ -79,6 +80,8 @@ class PosSuccessModal extends StatelessWidget {
             row('Efectivo recibido', received),
             row('Cambio a entregar', change, strong: true),
           ],
+          if (sale.ticket case final ticket?)
+            TicketPrintButton(sale: ticket, justSold: true),
         ],
       ),
     );

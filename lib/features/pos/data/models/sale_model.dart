@@ -1,3 +1,5 @@
+import 'package:casca_app/core/printing/sale_ticket.dart';
+
 double _amount(Object? value) => (value as num?)?.toDouble() ?? 0;
 
 class SalePreviewLineModel {
@@ -88,6 +90,7 @@ class SaleResultModel {
     required this.saleNumber,
     required this.totalAmount,
     this.customerName,
+    this.ticket,
   });
 
   factory SaleResultModel.fromJson(Map<String, dynamic> json) {
@@ -96,6 +99,7 @@ class SaleResultModel {
       saleNumber: '${json['saleNumber']}',
       totalAmount: (json['totalAmount'] as num).toDouble(),
       customerName: json['customerName'] as String?,
+      ticket: SaleTicket.tryParse(json),
     );
   }
 
@@ -103,4 +107,5 @@ class SaleResultModel {
   final String saleNumber;
   final double totalAmount;
   final String? customerName;
+  final SaleTicket? ticket;
 }

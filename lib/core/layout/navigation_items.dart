@@ -91,7 +91,7 @@ const preferenceModules = [
   ),
   NavigationItem(
     id: 'printers',
-    label: 'Impresora de tickets',
+    label: 'Impresoras',
     icon: CascaIcons.print,
     route: '/printers',
     permission: 'sale.create',

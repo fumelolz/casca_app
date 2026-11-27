@@ -4,6 +4,7 @@ import 'package:casca_app/core/network/api_client.dart';
 import 'package:casca_app/core/network/network_providers.dart';
 import 'package:casca_app/features/products/data/product_endpoints.dart';
 import 'package:casca_app/features/products/presentation/pages/product_list_page.dart';
+import 'package:casca_app/shared/ui/casca_checkbox.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -115,6 +116,26 @@ void main() {
     expect(find.text('Stock'), findsOneWidget);
     expect(find.text('Precio de venta'), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('en teléfono selecciona varios productos para etiquetas', (
+    tester,
+  ) async {
+    await _pump(tester, width: 360);
+
+    await tester.tap(find.byType(CascaCheckbox).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('3 seleccionados'), findsOneWidget);
+    expect(find.text('Imprimir'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.ensureVisible(find.text('Quitar'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Quitar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('3 seleccionados'), findsNothing);
   });
 
   testWidgets('ordena por stock y vuelve a los recientes', (tester) async {

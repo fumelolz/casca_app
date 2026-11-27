@@ -7,6 +7,8 @@ class PreferencesStorage {
 
   static const String themeModeKey = 'casca.theme_mode';
   static const String sidebarCollapsedKey = 'casca.sidebar_collapsed';
+  static const String labelPrinterKey = 'casca.label_printer';
+  static const String ticketPrinterKey = 'casca.ticket_printer';
 
   final FlutterSecureStorage _storage;
 

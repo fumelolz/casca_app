@@ -44,6 +44,8 @@ dependencies:
   flutter_secure_storage: ^11.2.0
   image_picker: ^1.2.4
   mobile_scanner: ^7.5.0
+  universal_ble: ^3.4.1
+  ffi: ^2.2.0
 
 dev_dependencies:
   flutter_test:

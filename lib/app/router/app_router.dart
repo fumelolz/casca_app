@@ -22,6 +22,8 @@ import 'package:casca_app/features/auth/presentation/pages/splash_page.dart';
 import 'package:casca_app/features/pos/presentation/pages/pos_page.dart';
 import 'package:casca_app/features/price_lists/presentation/pages/price_list_detail_page.dart';
 import 'package:casca_app/features/price_lists/presentation/pages/price_list_page.dart';
+import 'package:casca_app/features/printers/presentation/pages/printer_settings_page.dart';
+import 'package:casca_app/features/printers/presentation/providers/printer_scan_provider.dart';
 import 'package:casca_app/features/products/presentation/pages/category_list_page.dart';
 import 'package:casca_app/features/products/presentation/pages/product_form_page.dart';
 import 'package:casca_app/features/products/presentation/pages/product_list_page.dart';
@@ -50,6 +52,7 @@ final _placeholderRoutes = allNavigationRoutes
           item.route != AppRoutes.products &&
           item.route != AppRoutes.stores &&
           item.route != AppRoutes.appearance &&
+          item.route != AppRoutes.printers &&
           item.route != AppRoutes.cashRegisters &&
           item.route != AppRoutes.productCategories,
     )
@@ -190,6 +193,17 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.appearance,
             pageBuilder: (context, state) =>
                 shellPage(state, const AppearancePage()),
+          ),
+          GoRoute(
+            path: AppRoutes.printers,
+            pageBuilder: (context, state) => shellPage(
+              state,
+              PrinterSettingsPage(
+                initialTab: state.uri.toString() == AppRoutes.labelPrinters
+                    ? PrinterTab.labels
+                    : PrinterTab.tickets,
+              ),
+            ),
           ),
           GoRoute(
             path: AppRoutes.productNew,

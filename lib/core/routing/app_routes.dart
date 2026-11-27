@@ -14,6 +14,9 @@ abstract final class AppRoutes {
   static const productCategories = '/categories';
   static const stores = '/stores';
   static const appearance = '/appearance';
+  static const printers = '/printers';
+  static const printerTabParameter = 'tipo';
+  static const labelPrinters = '$printers?$printerTabParameter=etiquetas';
   static const cashRegisters = '/cash-register/registers';
 
   static const sales = '/sales';

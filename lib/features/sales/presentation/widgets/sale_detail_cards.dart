@@ -5,6 +5,7 @@ import 'package:casca_app/features/sales/domain/sale_labels.dart';
 import 'package:casca_app/features/sales/presentation/widgets/sale_status_chip.dart';
 import 'package:casca_app/shared/formatters/date_formatters.dart';
 import 'package:casca_app/shared/formatters/number_formatters.dart';
+import 'package:casca_app/shared/formatters/payment_labels.dart';
 import 'package:casca_app/shared/ui/casca_card.dart';
 import 'package:material_ui/material_ui.dart';
 
