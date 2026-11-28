@@ -38,8 +38,11 @@ class ApiClient {
     return _send(() => _dio.put<Object?>(path, data: body), decode);
   }
 
-  Future<void> delete(String path) {
-    return _send(() => _dio.delete<Object?>(path), (_) {});
+  Future<void> delete(String path, {Map<String, dynamic>? query}) {
+    return _send(
+      () => _dio.delete<Object?>(path, queryParameters: query),
+      (_) {},
+    );
   }
 
   Future<void> postVoid(String path, {Object? body}) {

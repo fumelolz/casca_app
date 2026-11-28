@@ -249,7 +249,7 @@ class _CartLineTile extends ConsumerWidget {
                         dimension: _menuSize,
                         child: Center(
                           child: CascaIcon(
-                            CascaIcons.dotsThree,
+                            CascaIcons.dotsThreeVertical,
                             size: CascaSpacing.space5,
                             color: colors.textSecondary,
                           ),

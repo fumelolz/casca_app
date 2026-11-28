@@ -28,7 +28,8 @@ abstract final class CascaIcons {
   static const String chartColumn = 'assets/icons/chart-column.svg';
   static const String chevronRight = 'assets/icons/chevron-right.svg';
   static const String chevronLeft = 'assets/icons/chevron-left.svg';
-  static const String dotsThree = 'assets/icons/dots-three.svg';
+  static const String dotsThreeVertical =
+      'assets/icons/dots-three-vertical.svg';
   static const String minus = 'assets/icons/minus.svg';
   static const String money = 'assets/icons/money.svg';
   static const String creditCard = 'assets/icons/credit-card.svg';

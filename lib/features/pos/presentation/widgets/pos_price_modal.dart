@@ -116,8 +116,11 @@ class _PosPriceModalState extends ConsumerState<PosPriceModal> {
           ],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            spacing: CascaSpacing.space2,
             children: [
-              Text('Precio de lista', style: textTheme.bodyMedium),
+              Flexible(
+                child: Text('Precio de lista', style: textTheme.bodyMedium),
+              ),
               FutureBuilder<double>(
                 future: _listPrice,
                 builder: (context, snapshot) {

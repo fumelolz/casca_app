@@ -12,6 +12,8 @@ class ProductDetailModel {
     required this.iepsRate,
     required this.satUnitCode,
     this.variants = const [],
+    this.saleUnits = const [],
+    this.isActive = true,
     this.description,
     this.categoryId,
     this.categoryName,
@@ -46,6 +48,7 @@ class ProductDetailModel {
       categoryName: category?['name'] as String?,
       productType: json['productType'] as int,
       version: json['version'] as int,
+      isActive: json['isActive'] as bool? ?? true,
       ivaRate: json['defaultTaxRate'] as int,
       iepsRate: json['defaultIepsTaxRate'] as int,
       iepsQuantityFactor: number('iepsQuantityFactor'),
@@ -60,6 +63,7 @@ class ProductDetailModel {
           .cast<Map<String, dynamic>>()
           .map(ProductVariantModel.fromJson)
           .toList(),
+      saleUnits: units.map(ProductSaleUnitModel.fromJson).toList(),
       baseUnit: base == null ? null : ProductSaleUnitModel.fromJson(base),
       image: json['image'] == null
           ? null
@@ -75,6 +79,7 @@ class ProductDetailModel {
   final String? categoryName;
   final int productType;
   final int version;
+  final bool isActive;
   final int ivaRate;
   final int iepsRate;
   final double? iepsQuantityFactor;
@@ -86,10 +91,13 @@ class ProductDetailModel {
   final double? averageCost;
   final double? stock;
   final List<ProductVariantModel> variants;
+  final List<ProductSaleUnitModel> saleUnits;
   final ProductSaleUnitModel? baseUnit;
   final ProductImageModel? image;
 
   bool get hasVariants => variants.isNotEmpty;
+
+  bool get isService => productType == ProductListItemModel.serviceType;
 }
 
 class ProductSaleUnitModel {
@@ -98,6 +106,8 @@ class ProductSaleUnitModel {
     required this.price,
     required this.cost,
     this.barcode,
+    this.isInventoryBaseUnit = false,
+    this.allowsDecimalQuantity = false,
   });
 
   factory ProductSaleUnitModel.fromJson(Map<String, dynamic> json) {
@@ -106,6 +116,8 @@ class ProductSaleUnitModel {
       price: (json['price'] as num).toDouble(),
       cost: (json['cost'] as num?)?.toDouble() ?? 0,
       barcode: json['barcode'] as String?,
+      isInventoryBaseUnit: json['isInventoryBaseUnit'] as bool? ?? false,
+      allowsDecimalQuantity: json['allowsDecimalQuantity'] as bool? ?? false,
     );
   }
 
@@ -113,4 +125,6 @@ class ProductSaleUnitModel {
   final double price;
   final double cost;
   final String? barcode;
+  final bool isInventoryBaseUnit;
+  final bool allowsDecimalQuantity;
 }

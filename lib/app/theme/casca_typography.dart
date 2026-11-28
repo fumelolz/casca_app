@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 abstract final class CascaFontSize {
   static const double xs = 12;
-  static const double sm = 13;
+  static const double sm = 14;
   static const double md = 16;
   static const double lg = 18;
   static const double xl = 24;

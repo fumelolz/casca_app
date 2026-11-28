@@ -216,7 +216,7 @@ class _PriceListDetailPageState extends ConsumerState<PriceListDetailPage> {
                             dimension: _menuSize,
                             child: Center(
                               child: CascaIcon(
-                                CascaIcons.dotsThree,
+                                CascaIcons.dotsThreeVertical,
                                 size: CascaSpacing.space6,
                                 color: colors.textSecondary,
                               ),

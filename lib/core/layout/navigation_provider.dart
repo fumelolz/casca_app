@@ -62,7 +62,7 @@ NavigationState buildNavigation(SessionState? session) {
   ];
 
   return NavigationState(
-    sections: _group(modules, 'Menú'),
+    sections: _group(modules, ''),
     preferences: preferences,
     preferenceGroups: _group(preferences, ''),
     mobileTabs: _centerPos([

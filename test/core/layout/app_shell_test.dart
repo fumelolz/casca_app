@@ -282,16 +282,16 @@ Future<void> _collapse(WidgetTester tester) async {
 
 void main() {
   group('escritorio', () {
-    testWidgets('muestra las secciones y los módulos permitidos', (
+    testWidgets('muestra los módulos permitidos sin secciones', (
       tester,
     ) async {
       await _openApp(tester);
 
-      expect(find.text('PRINCIPAL'), findsOneWidget);
-      expect(find.text('OPERACIÓN'), findsOneWidget);
-      expect(find.text('CATÁLOGO'), findsOneWidget);
+      expect(find.text('PRINCIPAL'), findsNothing);
+      expect(find.text('OPERACIÓN'), findsNothing);
       expect(_inSidebar('Ventas realizadas'), findsOneWidget);
-      expect(_inSidebar('Control de caja'), findsOneWidget);
+      expect(_inSidebar('Turno actual'), findsOneWidget);
+      expect(_inSidebar('Resumen de reportes'), findsNothing);
       expect(_inSidebar('Preferencias'), findsOneWidget);
       expect(find.byType(Sidebar), findsOneWidget);
     });
@@ -331,27 +331,13 @@ void main() {
       expect(_tileColor(tester, 'Productos'), _activeBackground);
     });
 
-    testWidgets('un grupo se despliega y navega a su hijo', (tester) async {
+    testWidgets('el historial de turnos está al primer nivel', (tester) async {
       await _openApp(tester);
-      expect(_inSidebar('Turno actual'), findsNothing);
-
-      await _tap(tester, _inSidebar('Control de caja'));
-      expect(_inSidebar('Turno actual'), findsOneWidget);
 
       await _tap(tester, _inSidebar('Historial de turnos'));
 
       expect(find.text('Historial de turnos'), findsNWidgets(2));
       expect(_tileColor(tester, 'Historial de turnos'), _activeBackground);
-      expect(_inSidebar('Turno actual'), findsOneWidget);
-    });
-
-    testWidgets('un grupo se pliega al tocarlo de nuevo', (tester) async {
-      await _openApp(tester);
-
-      await _tap(tester, _inSidebar('Control de caja'));
-      await _tap(tester, _inSidebar('Control de caja'));
-
-      expect(_inSidebar('Turno actual'), findsNothing);
     });
 
     testWidgets('el botón contrae el menú a solo iconos', (tester) async {
@@ -427,32 +413,15 @@ void main() {
       expect(find.text('Vender'), findsNothing);
     });
 
-    testWidgets('contraído, un grupo abre un flyout con sus hijos', (
+    testWidgets('contraído, el turno actual navega sin flyout', (
       tester,
     ) async {
       await _openApp(tester);
       await _collapse(tester);
 
       await _tap(tester, find.byType(CascaTooltip).at(4));
-      expect(find.text('CONTROL DE CAJA'), findsOneWidget);
-      expect(find.text('Turno actual'), findsOneWidget);
 
-      await _tap(tester, find.text('Turno actual'));
-
-      expect(find.text('CONTROL DE CAJA'), findsNothing);
       expect(find.text('No hay un turno activo'), findsOneWidget);
-    });
-
-    testWidgets('Escape cierra el flyout', (tester) async {
-      await _openApp(tester);
-      await _collapse(tester);
-      await _tap(tester, find.byType(CascaTooltip).at(4));
-      expect(find.text('Turno actual'), findsOneWidget);
-
-      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-      await tester.pumpAndSettle();
-
-      expect(find.text('Turno actual'), findsNothing);
     });
 
     testWidgets('la barra superior muestra la tienda y el nombre', (

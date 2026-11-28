@@ -449,7 +449,7 @@ class _RowActionsMenu<T> extends StatelessWidget {
         height: _selectionCellWidth,
         child: Center(
           child: CascaIcon(
-            CascaIcons.dotsThree,
+            CascaIcons.dotsThreeVertical,
             size: CascaSpacing.space5,
             color: colors.textSecondary,
           ),

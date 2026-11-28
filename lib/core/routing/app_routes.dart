@@ -11,6 +11,7 @@ abstract final class AppRoutes {
   static const products = '/products';
   static const productNew = '/products/new';
   static const productEdit = '/products/:productId/edit';
+  static const productDetail = '/products/:productId';
   static const productCategories = '/categories';
   static const stores = '/stores';
   static const appearance = '/appearance';
@@ -61,6 +62,8 @@ abstract final class AppRoutes {
   static String priceListFor(String priceListId) => '$priceLists/$priceListId';
 
   static String productEditFor(String productId) => '/products/$productId/edit';
+
+  static String productDetailFor(String productId) => '$products/$productId';
 
   static bool isFormRoute(String location) {
     return location == productNew ||

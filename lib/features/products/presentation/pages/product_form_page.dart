@@ -37,6 +37,10 @@ const int _maxNameLength = 50;
 const int _maxDescriptionLength = 150;
 const int _maxBarcodeLength = 50;
 
+String _exitRoute(String? productId) => productId == null
+    ? AppRoutes.products
+    : AppRoutes.productDetailFor(productId);
+
 class ProductFormPage extends ConsumerWidget {
   const ProductFormPage({super.key, this.productId});
 
@@ -47,7 +51,7 @@ class ProductFormPage extends ConsumerWidget {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) context.go(AppRoutes.products);
+        if (!didPop) context.go(_exitRoute(productId));
       },
       child: _content(context, ref),
     );
@@ -260,7 +264,7 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
     if (savedId == null || !mounted) return;
     if (current != null) {
       _saved = true;
-      return context.go(AppRoutes.products);
+      return context.go(_exitRoute(current.id));
     }
 
     setState(() => _createdId = savedId);
@@ -567,7 +571,7 @@ class _ProductFormState extends ConsumerState<_ProductForm> {
           cancelLabel: _createdId == null ? 'Cancelar' : 'Ir a la lista',
           saveLabel: _createdId == null ? 'Guardar' : 'Reintentar fotos',
           saving: saving,
-          onCancel: () => context.go(AppRoutes.products),
+          onCancel: () => context.go(_exitRoute(_current?.id)),
           onSave: _save,
         ),
       ],

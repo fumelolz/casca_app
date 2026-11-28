@@ -91,7 +91,7 @@ class _ProductVariantListState extends State<ProductVariantList> {
           dimension: variantTableActionSize,
           child: Center(
             child: CascaIcon(
-              CascaIcons.dotsThree,
+              CascaIcons.dotsThreeVertical,
               size: CascaSpacing.space5,
               color: context.casca.textSecondary,
             ),

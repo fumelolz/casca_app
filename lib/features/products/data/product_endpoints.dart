@@ -40,4 +40,10 @@ abstract final class ProductEndpoints {
 
   static String variantLimits(String productId, String variantId) =>
       '/api/v1/inventories/$productId/variants/$variantId/limits';
+
+  static String movements(String productId) =>
+      '/api/v1/inventories/$productId/movements';
+
+  static String variantMovements(String productId, String variantId) =>
+      '/api/v1/inventories/$productId/variants/$variantId/movements';
 }

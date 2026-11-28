@@ -30,6 +30,7 @@ import 'package:casca_app/features/price_lists/presentation/pages/price_list_pag
 import 'package:casca_app/features/printers/presentation/pages/printer_settings_page.dart';
 import 'package:casca_app/features/printers/presentation/providers/printer_scan_provider.dart';
 import 'package:casca_app/features/products/presentation/pages/category_list_page.dart';
+import 'package:casca_app/features/products/presentation/pages/product_detail_page.dart';
 import 'package:casca_app/features/products/presentation/pages/product_form_page.dart';
 import 'package:casca_app/features/products/presentation/pages/product_list_page.dart';
 import 'package:casca_app/features/sales/presentation/pages/sale_detail_page.dart';
@@ -275,6 +276,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => shellPage(
               state,
               ProductFormPage(productId: state.pathParameters['productId']),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.productDetail,
+            pageBuilder: (context, state) => shellPage(
+              state,
+              ProductDetailPage(productId: state.pathParameters['productId']!),
             ),
           ),
           for (final item in _placeholderRoutes)

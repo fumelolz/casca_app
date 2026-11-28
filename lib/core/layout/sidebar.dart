@@ -152,7 +152,7 @@ class _SidebarState extends ConsumerState<Sidebar> {
             margin: const EdgeInsets.only(bottom: CascaSpacing.space2),
             color: colors.border,
           ),
-        if (!widget.compact)
+        if (!widget.compact && section.label.isNotEmpty)
           Padding(
             padding: const EdgeInsets.fromLTRB(
               CascaSpacing.space3,

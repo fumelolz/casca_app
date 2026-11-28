@@ -20,24 +20,23 @@ void main() {
       expect(nav.preferences, isEmpty);
     });
 
-    test('con todos los permisos muestra los módulos y sus secciones', () {
+    test('con todos los permisos muestra los módulos al mismo nivel', () {
       final nav = buildNavigation(fullAccessSession());
 
-      expect(nav.sections.map((s) => s.label), [
-        'Principal',
-        'Operación',
-        'Catálogo',
-        'Reportes',
-      ]);
+      expect(nav.sections.map((s) => s.label), ['']);
       expect(_labels(nav), [
         'Inicio',
         'Vender',
         'Ventas realizadas',
         'Clientes',
-        'Control de caja',
+        'Turno actual',
+        'Historial de turnos',
         'Productos',
-        'Resumen de reportes',
       ]);
+      expect(
+        nav.sections.single.items.where((item) => item.hasChildren),
+        isEmpty,
+      );
     });
 
     test('oculta los módulos para los que no hay permiso', () {
@@ -48,18 +47,7 @@ void main() {
       expect(_labels(nav), ['Ventas realizadas', 'Productos']);
     });
 
-    test('un grupo solo conserva los hijos permitidos', () {
-      final nav = buildNavigation(
-        fullAccessSession(permissions: ['cashregister.shifts.view']),
-      );
-
-      final cashRegister = nav.sections.single.items.single;
-      expect(cashRegister.children!.map((c) => c.label), [
-        'Historial de turnos',
-      ]);
-    });
-
-    test('un grupo sin hijos visibles se oculta', () {
+    test('sin permisos de módulos no muestra ninguno', () {
       final nav = buildNavigation(fullAccessSession(permissions: ['x']));
 
       expect(_labels(nav), isEmpty);
@@ -70,9 +58,7 @@ void main() {
         fullAccessSession(permissions: ['cashregister.operate']),
       );
 
-      final cash = nav.sections.single.items.single;
-      expect(cash.label, 'Control de caja');
-      expect(cash.children!.map((c) => c.label), ['Turno actual']);
+      expect(_labels(nav), ['Turno actual']);
     });
 
     test('las preferencias sin permiso siempre aparecen', () {

@@ -143,8 +143,10 @@ class _ProductVariantOptionEditorState
             const SizedBox(height: CascaSpacing.space2),
           ],
           const SizedBox(height: CascaSpacing.space2),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            spacing: CascaSpacing.space2,
+            runSpacing: CascaSpacing.space2,
             children: [
               CascaButton(
                 label: 'Eliminar',

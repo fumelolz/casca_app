@@ -503,7 +503,7 @@ class _OptionsButton extends StatelessWidget {
         border: Border.all(color: colors.border),
       ),
       child: CascaIcon(
-        CascaIcons.dotsThree,
+        CascaIcons.dotsThreeVertical,
         size: CascaSpacing.space5,
         color: colors.text,
       ),

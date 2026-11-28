@@ -1,6 +1,7 @@
 import 'package:casca_app/core/network/api_client.dart';
 import 'package:casca_app/core/network/network_providers.dart';
 import 'package:casca_app/core/network/paged_response.dart';
+import 'package:casca_app/features/products/data/models/inventory_movement_model.dart';
 import 'package:casca_app/features/products/data/models/product_detail_model.dart';
 import 'package:casca_app/features/products/data/models/product_list_item_model.dart';
 import 'package:casca_app/features/products/data/product_endpoints.dart';
@@ -32,6 +33,47 @@ class ProductRepository {
   Future<void> updateProduct(String productId, Map<String, dynamic> request) {
     return _api.put<void>(
       ProductEndpoints.byId(productId),
+      body: request,
+      decode: (_) {},
+    );
+  }
+
+  Future<void> deleteProduct(String productId, int version) {
+    return _api.delete(
+      ProductEndpoints.byId(productId),
+      query: {'version': version},
+    );
+  }
+
+  Future<PagedResponse<InventoryMovementModel>> getMovements(
+    String productId, {
+    int page = 1,
+    int pageSize = 10,
+  }) {
+    return _api.get<PagedResponse<InventoryMovementModel>>(
+      ProductEndpoints.movements(productId),
+      query: {
+        'sort': 'createdon',
+        'sortOrder': 'desc',
+        'page': page,
+        'pageSize': pageSize,
+      },
+      decode: (data) => PagedResponse.fromJson(
+        data as Map<String, dynamic>,
+        InventoryMovementModel.fromJson,
+      ),
+    );
+  }
+
+  Future<void> addMovement(
+    String productId,
+    Map<String, dynamic> request, {
+    String? variantId,
+  }) {
+    return _api.post<void>(
+      variantId == null
+          ? ProductEndpoints.movements(productId)
+          : ProductEndpoints.variantMovements(productId, variantId),
       body: request,
       decode: (_) {},
     );

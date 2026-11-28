@@ -153,6 +153,8 @@ class _ProductListPageState extends ConsumerState<ProductListPage> {
             ],
             rows: page?.items ?? const [],
             rowKey: (product) => product.id,
+            onRowTap: (product) =>
+                context.go(AppRoutes.productDetailFor(product.id)),
             loading: products.isLoading,
             errorMessage: failed
                 ? 'No fue posible obtener los productos.'

@@ -14,7 +14,6 @@ const navigationModules = [
     label: 'Inicio',
     icon: CascaIcons.house,
     route: AppRoutes.home,
-    section: 'Principal',
     permission: 'dashboard.view',
   ),
   NavigationItem(
@@ -22,7 +21,6 @@ const navigationModules = [
     label: 'Vender',
     icon: CascaIcons.cashRegister,
     route: '/pos',
-    section: 'Principal',
     permission: 'sale.create',
   ),
   NavigationItem(
@@ -30,7 +28,6 @@ const navigationModules = [
     label: 'Ventas realizadas',
     icon: CascaIcons.receipt,
     route: '/sales',
-    section: 'Principal',
     permission: 'sale.view',
   ),
   NavigationItem(
@@ -38,46 +35,28 @@ const navigationModules = [
     label: 'Clientes',
     icon: CascaIcons.addressBook,
     route: '/customers',
-    section: 'Principal',
     permission: 'customer.view',
   ),
   NavigationItem(
-    id: 'cash-register',
-    label: 'Control de caja',
-    icon: CascaIcons.wallet,
-    section: 'Operación',
-    children: [
-      NavigationItem(
-        id: 'cash-register-current-shift',
-        label: 'Turno actual',
-        icon: CascaIcons.clock,
-        route: '/cash-register/current-shift',
-        anyPermission: shiftWorkPermissions,
-      ),
-      NavigationItem(
-        id: 'shift-history',
-        label: 'Historial de turnos',
-        icon: CascaIcons.clockRotateLeft,
-        route: '/cash-register/shift-history',
-        permission: 'cashregister.shifts.view',
-      ),
-    ],
+    id: 'cash-register-current-shift',
+    label: 'Turno actual',
+    icon: CascaIcons.clock,
+    route: '/cash-register/current-shift',
+    anyPermission: shiftWorkPermissions,
+  ),
+  NavigationItem(
+    id: 'shift-history',
+    label: 'Historial de turnos',
+    icon: CascaIcons.clockRotateLeft,
+    route: '/cash-register/shift-history',
+    permission: 'cashregister.shifts.view',
   ),
   NavigationItem(
     id: 'products',
     label: 'Productos',
     icon: CascaIcons.cube,
-    section: 'Catálogo',
     route: AppRoutes.products,
     permission: 'product.view',
-  ),
-  NavigationItem(
-    id: 'reports',
-    label: 'Resumen de reportes',
-    icon: CascaIcons.chartColumn,
-    route: '/reports',
-    section: 'Reportes',
-    anyPermission: ['inventory.review'],
   ),
 ];
 

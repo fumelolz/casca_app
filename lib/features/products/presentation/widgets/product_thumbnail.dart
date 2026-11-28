@@ -28,17 +28,23 @@ class ProductThumbnail extends StatelessWidget {
 }
 
 class ProductPicture extends StatelessWidget {
-  const ProductPicture({super.key, this.image, this.fullSize = false});
+  const ProductPicture({
+    super.key,
+    this.image,
+    this.fullSize = false,
+    this.fit,
+  });
 
   final ProductImageModel? image;
   final bool fullSize;
+  final BoxFit? fit;
 
   @override
   Widget build(BuildContext context) {
     final paths = fullSize ? image?.fullSizePaths : image?.paths;
     return CascaRemoteImage(
       paths: paths ?? const [],
-      fit: fullSize ? BoxFit.contain : BoxFit.cover,
+      fit: fit ?? (fullSize ? BoxFit.contain : BoxFit.cover),
     );
   }
 }

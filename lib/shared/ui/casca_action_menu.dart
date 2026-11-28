@@ -10,6 +10,8 @@ import 'package:material_ui/material_ui.dart';
 const double _menuMinWidth = 192;
 const double _itemHeight = CascaSpacing.space8;
 const double _itemIconSize = CascaFontSize.md;
+const double _hoverOpacity = 0.06;
+const double _pressedOpacity = 0.1;
 
 class CascaActionMenuItem {
   const CascaActionMenuItem({
@@ -163,6 +165,7 @@ class _MenuItem extends StatelessWidget {
     final icon = item.icon;
     final textColor = item.danger ? colors.danger : colors.text;
     final iconColor = item.danger ? colors.danger : colors.textSecondary;
+    final tint = item.danger ? colors.danger : colors.text;
 
     return Semantics(
       button: true,
@@ -171,43 +174,49 @@ class _MenuItem extends StatelessWidget {
       excludeSemantics: true,
       child: Opacity(
         opacity: item.disabled ? 0.5 : 1,
-        child: InkWell(
-          onTap: item.disabled ? null : onTap,
-          borderRadius: CascaRadius.sm,
-          hoverColor: colors.surfaceHover,
-          child: Container(
-            height: _itemHeight,
-            padding: const EdgeInsets.symmetric(
-              horizontal: CascaSpacing.space3,
-            ),
-            child: Row(
-              children: [
-                if (icon != null) ...[
-                  SizedBox(
-                    width: _itemIconSize,
-                    child: Center(
-                      child: CascaIcon(
-                        icon,
-                        size: _itemIconSize,
-                        color: iconColor,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: item.disabled ? null : onTap,
+            borderRadius: CascaRadius.sm,
+            hoverColor: tint.withValues(alpha: _hoverOpacity),
+            focusColor: tint.withValues(alpha: _hoverOpacity),
+            highlightColor: tint.withValues(alpha: _pressedOpacity),
+            splashFactory: NoSplash.splashFactory,
+            child: Container(
+              height: _itemHeight,
+              padding: const EdgeInsets.symmetric(
+                horizontal: CascaSpacing.space3,
+              ),
+              child: Row(
+                children: [
+                  if (icon != null) ...[
+                    SizedBox(
+                      width: _itemIconSize,
+                      child: Center(
+                        child: CascaIcon(
+                          icon,
+                          size: _itemIconSize,
+                          color: iconColor,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: CascaSpacing.space3),
+                  ],
+                  Flexible(
+                    child: Text(
+                      item.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: textColor,
+                        fontSize: CascaFontSize.sm,
                       ),
                     ),
                   ),
-                  const SizedBox(width: CascaSpacing.space3),
                 ],
-                Flexible(
-                  child: Text(
-                    item.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: false,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: textColor,
-                      fontSize: CascaFontSize.sm,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
