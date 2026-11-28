@@ -1,6 +1,8 @@
 import 'package:casca_app/app/router/shell_page.dart';
-import 'package:flutter/widgets.dart';
+import 'package:casca_app/app/theme/casca_colors.dart';
+import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 Widget _host({
   required Animation<double> animation,
@@ -8,19 +10,27 @@ Widget _host({
 }) {
   return Directionality(
     textDirection: TextDirection.ltr,
-    child: MediaQuery(
-      data: MediaQueryData(disableAnimations: disableAnimations),
-      child: Builder(
-        builder: (context) => shellTransition(
-          context,
-          animation,
-          const AlwaysStoppedAnimation(0),
-          const SizedBox(key: Key('page')),
+    child: Theme(
+      data: CascaTheme.light,
+      child: MediaQuery(
+        data: MediaQueryData(disableAnimations: disableAnimations),
+        child: Builder(
+          builder: (context) => shellTransition(
+            context,
+            animation,
+            const AlwaysStoppedAnimation(0),
+            const SizedBox(key: Key('page')),
+          ),
         ),
       ),
     ),
   );
 }
+
+Finder get _cover => find.byWidgetPredicate(
+  (widget) =>
+      widget is ColoredBox && widget.color == CascaColors.light.background,
+);
 
 double _opacity(WidgetTester tester) {
   final fade = tester.widget<FadeTransition>(
@@ -52,6 +62,15 @@ void main() {
     expect(_offset(tester).dy, greaterThan(0));
   });
 
+  testWidgets('desde el inicio tapa la pantalla anterior', (tester) async {
+    await tester.pumpWidget(_host(animation: const AlwaysStoppedAnimation(0)));
+
+    expect(
+      find.ancestor(of: find.byType(FadeTransition), matching: _cover),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('a mitad de la transición está a medias', (tester) async {
     await tester.pumpWidget(
       _host(animation: const AlwaysStoppedAnimation(0.5)),
@@ -79,5 +98,6 @@ void main() {
     expect(find.byType(FadeTransition), findsNothing);
     expect(find.byType(SlideTransition), findsNothing);
     expect(find.byKey(const Key('page')), findsOneWidget);
+    expect(_cover, findsOneWidget);
   });
 }

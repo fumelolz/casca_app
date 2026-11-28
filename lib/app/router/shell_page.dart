@@ -1,3 +1,4 @@
+import 'package:casca_app/app/theme/casca_theme.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,7 +12,11 @@ Widget shellTransition(
   Animation<double> secondaryAnimation,
   Widget child,
 ) {
-  if (MediaQuery.disableAnimationsOf(context)) return child;
+  Widget covering(Widget content) {
+    return ColoredBox(color: context.casca.background, child: content);
+  }
+
+  if (MediaQuery.disableAnimationsOf(context)) return covering(child);
 
   final curved = CurvedAnimation(
     parent: animation,
@@ -19,14 +24,16 @@ Widget shellTransition(
     reverseCurve: Curves.easeIn,
   );
 
-  return FadeTransition(
-    opacity: curved,
-    child: SlideTransition(
-      position: Tween<Offset>(
-        begin: _enterOffset,
-        end: Offset.zero,
-      ).animate(curved),
-      child: child,
+  return covering(
+    FadeTransition(
+      opacity: curved,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: _enterOffset,
+          end: Offset.zero,
+        ).animate(curved),
+        child: child,
+      ),
     ),
   );
 }
